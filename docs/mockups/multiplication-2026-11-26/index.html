@@ -165,6 +165,27 @@
          background: #fff; border: 2px solid var(--warn); color: var(--warn); font: 700 13px/18px Arial; text-align: center; animation: pop .3s both; pointer-events: none; z-index: 1; }
   .choice.off { opacity: .35; pointer-events: none; }
   .choice.big2 { min-width: 92px; font-size: clamp(26px, 6vw, 36px); }
+  /* ступень 3: сложение → умножение */
+  .sumline { display: flex; align-items: flex-start; gap: .28em; font: 700 clamp(22px, 6cqw, 38px)/1.1 Georgia, serif; min-height: 2.1em; }
+  .sumline .term { display: flex; flex-direction: column; align-items: center; animation: pop .3s both; transition: transform .6s ease, opacity .6s ease; }
+  .sumline .times { font: 700 .62em/1.2 Arial; color: var(--blue); border: 2px solid var(--blue); border-radius: 10px; padding: 0 .35em; margin-top: 3px; animation: pop .3s both; }
+  .sumline.gone { opacity: .25; }
+  .record { display: flex; align-items: flex-start; gap: .3em; font: 700 clamp(30px, 9cqw, 56px)/1.1 Georgia, serif; animation: pop .45s both; }
+  .record .k { display: flex; flex-direction: column; align-items: center; }
+  .record .num { border: 0; background: transparent; font: inherit; color: inherit; padding: 0 .12em; border-radius: 10px; min-width: 1em; }
+  .record .num.tap { outline: 3px dashed #b9c3d6; outline-offset: 2px; }
+  .record .num.good { background: #dcfce7; outline: 3px solid var(--green); }
+  .record .num.bad { background: #fef2f2; outline: 3px solid #ef4444; animation: shake .4s; }
+  .record .hint { display: flex; gap: 2px; margin-top: 4px; height: .38em; align-items: center; transition: opacity .3s; }
+  .record .hint img, .record .hint .egg-mini { height: 100%; }
+  .record .hint .mini { height: 100%; aspect-ratio: 1; border-radius: 50%; background: center / contain var(--plate-img); }
+  .record .hint .box-mini { height: 100%; aspect-ratio: 1; border-radius: 22%; background: #c9ab7e; }
+  .record .hint .egg-mini { aspect-ratio: .8; border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%; background: #f1e6d3; box-shadow: 0 1px 1px #0003; }
+  .record .hint.fade { opacity: .3; }
+  .record .slot { border: 3px dashed #a99a80; border-radius: 10px; min-width: 1.1em; color: transparent; }
+  .plate.glow { outline: 4px solid var(--green); outline-offset: 5px; }
+  .plate.glow-one img, .plate.glow-one .egg { animation: bump .5s ease 2; }
+  @keyframes bump { 50% { transform: translate(-50%, -50%) scale(1.18); } }
   /* подсказка для того, кто смотрит макет (в приложении её нет) */
   .guide { flex: none; display: flex; gap: 10px; align-items: flex-start; margin: 8px 0 0; padding: 9px 12px; border-radius: 10px;
            background: #fff3bf; border: 1px solid #f0d36b; color: #5b4500; font-size: clamp(13px, 3.4vw, 15px); line-height: 1.35; }
@@ -201,7 +222,7 @@
   <h2>Как смотреть этот макет</h2>
   <ol>
     <li>Это будущая тема «Умножение» — <b>лестница из ступеней</b>, от простого к сложному. Номера ступеней — сверху: 0, 1, 2 …</li>
-    <li>Ступени <span class="pill">0</span>, <span class="pill">1</span> и <span class="pill">2</span> (обведены зелёным) — <b>живые</b>: пройди их сам, как ребёнок. Что нажать — написано в жёлтой полосе.</li>
+    <li>Ступени <span class="pill">0</span>–<span class="pill">3</span> (обведены зелёным) — <b>живые</b>: пройди их сам, как ребёнок. Что нажать — написано в жёлтой полосе.</li>
     <li>Остальные ступени — <b>картинки-эскизы</b>: как будет выглядеть экран. Нажимать там нечего.</li>
     <li>Зачем ступень устроена именно так — кнопка <b>«Что это?»</b> (на компьютере — колонка справа).</li>
   </ol>
@@ -601,18 +622,144 @@ const step2 = {
   },
 };
 
+/* ───────── ступень 3 «Сложение → умножение» (живая) ───────── */
+const KIND_NAMES = { apple: ["яблок", "на одной тарелке", "тарелок"], banana: ["бананов", "на одной тарелке", "тарелок"], egg: ["яиц", "в одной коробке", "коробок"] };
+const step3 = {
+  id: "3", title: "Сложение → умножение", live: true,
+  guide: "<b>Попробуй как ребёнок:</b> нажимай группы по очереди — сложится пример «3 + 3 + …», потом он свернётся в «3 × 4». С уровня A голос попросит показать, какое число что значит — нажми на число в записи.",
+  levels: [["R", "собрать и посмотреть"], ["A", "показать, что значит число"], ["B", "то же, значки бледные"], ["C", "вставить пропущенное число"]],
+  state: { level: "R", history: [], badStreak: 0 },
+  info: `<ul>
+    <li><b>Зачем:</b> связать уже знакомый счёт группами с записью. Длинное сложение «3 + 3 + 3 + 3» — то же, что «по три, четыре раза» — и записывается коротко: «3 × 4».</li>
+    <li><b>Откуда второе число:</b> пока ребёнок собирает сложение, под каждым слагаемым появляется, какой это раз: 1, 2, 3, 4. Последний номер и становится вторым числом записи. Это главное место ступени: второе число — <b>сколько раз</b>, его не видно в группе, его надо посчитать.</li>
+    <li><b>Уровни:</b> R — ребёнок собирает сложение нажатиями, свёртка показывается (решать нечего) → A — после свёртки голос просит показать число: «сколько яблок на одной тарелке?» и «сколько тарелок?» — ребёнок нажимает число в записи → B — то же сразу по картинке и записи, значки под числами бледные → C — в записи одно число пропущено, вставить из 2–3.</li>
+    <li><b>Ответ показом, а не словом:</b> ребёнку не надо говорить — он нажимает число. Верно — загорается то, что это число значит (яблоки одной тарелки или все тарелки по очереди).</li>
+    <li><b>Значки под числами</b> (три яблока под «3», четыре тарелки под «4») — подсказка внутри записи; гаснут на B и исчезают на C.</li>
+    <li><b>Числа:</b> в группе 2–5, групп 2–5, никогда a × a (не понять, какое число что значит). Группы — с первого задания разные: яблоки, бананы, яйца в коробках.</li>
+    <li><b>Голос свёртки:</b> «По три, четыре раза. Три умножить на четыре — двенадцать». Знак «×» читаем «умножить на» (как в школе), но всегда вместе с «по три, четыре раза».</li>
+    <li><b>«Чисто»</b> — без ошибок. Вверх — 8 из 10; вниз — 2 задания подряд с 2+ ошибками.</li></ul>`,
+  start() { this.next(); },
+  next() {
+    const st = this.state;
+    let g, n; do { g = rnd(2, 5); n = rnd(2, 5); } while (g === n || g * n > 20);
+    const kinds = g <= 3 ? ["apple", "banana", "egg"] : ["apple", "egg"];
+    const kind = kinds[rnd(0, kinds.length - 1)];
+    this.task = { g, n, kind, idx: 0, errors: 0, finished: false, asks: [] };
+    const inner = kind === "egg" ? DICE[g].map(([x, y]) => `<span class="egg" style="left:${x}%;top:${y}%"></span>`).join("") : fruitsHtml(g, kind);
+    $("#mat").className = "mat"; $("#mat").style.setProperty("--hf", ".34");
+    $("#mat").innerHTML = `<div class="plates" id="plates" style="--n:${n}">${Array.from({ length: n }, (_, i) =>
+      `<button class="plate locked${kind === "egg" ? " box" : ""}" data-i="${i}" style="--s:150px">${inner}</button>`).join("")}</div>
+      <div class="sumline" id="sum"></div><div id="rec"></div><button class="next" id="next" hidden aria-label="Дальше">→</button>`;
+    $("#answers").innerHTML = "";
+    $("#next").onclick = () => { this.adapt(); this.next(); };
+    renderStars(); renderLevelButtons(this);
+    log(`[${st.level}] по ${g}, ${n} ${KIND_NAMES[kind][2]}`);
+    if (st.level === "R" || st.level === "A") {
+      say(`Сколько всего? Нажимай по очереди`);
+      $("#plates").onclick = e => { const pl = e.target.closest(".plate"); if (pl) this.tap(+pl.dataset.i); };
+      this.mark();
+    } else {
+      document.querySelectorAll("#plates .plate").forEach(p => p.classList.remove("locked"));
+      this.showRecord();
+    }
+  },
+  el(i) { return document.querySelector(`#plates .plate[data-i="${i}"]`); },
+  mark() { document.querySelectorAll("#plates .plate").forEach((pl, i) => pl.classList.toggle("upnext", i === this.task.idx)); },
+  tap(i) {
+    const t = this.task; if (i !== t.idx || t.finished) return;
+    this.el(i).classList.add("ok"); this.el(i).classList.remove("upnext");
+    $("#sum").insertAdjacentHTML("beforeend", (i ? `<span class="term">+</span>` : "") + `<span class="term"><span>${t.g}</span></span>`);
+    t.idx++; say(String(t.g * t.idx));
+    if (t.idx < t.n) { this.mark(); return; }
+    $("#plates").onclick = null;
+    $("#sum").insertAdjacentHTML("beforeend", `<span class="term">=</span><span class="term">${t.g * t.n}</span>`);
+    // под каждым слагаемым — какой это раз
+    const terms = [...$("#sum").querySelectorAll(".term")].filter(x => x.children.length);
+    terms.forEach((term, k) => setTimeout(() => { term.insertAdjacentHTML("beforeend", `<span class="times">${k + 1}</span>`); say(`${TIMES(k + 1)}`); }, 700 * (k + 1)));
+    setTimeout(() => { $("#sum").classList.add("gone"); this.showRecord(); }, 700 * (terms.length + 1) + 400);
+  },
+  recordHtml({ hide = null, tappable = false, fade = false, noHints = false } = {}) {
+    const t = this.task, total = t.g * t.n;
+    const item = t.kind === "egg" ? `<span class="egg-mini"></span>` : `<img src="${IMG[t.kind]}">`;
+    const group = t.kind === "egg" ? `<span class="box-mini"></span>` : `<span class="mini"></span>`;
+    const hint = (h) => noHints ? "" : `<span class="hint${fade ? " fade" : ""}">${h}</span>`;
+    const num = (v, role) => hide === role ? `<span class="slot" data-role="${role}">${v}</span>`
+      : `<button class="num${tappable ? " tap" : ""}" data-role="${role}">${v}</button>`;
+    return `<div class="record"><span class="k">${num(t.g, "size")}${hint(item.repeat(t.g))}</span><span>×</span><span class="k">${num(t.n, "count")}${hint(group.repeat(t.n))}</span><span>=</span><span>${total}</span></div>`;
+  },
+  showRecord() {
+    const t = this.task, st = this.state, total = t.g * t.n, nm = KIND_NAMES[t.kind];
+    if (st.level === "R") {
+      $("#rec").innerHTML = this.recordHtml();
+      say(`По ${NUM[t.g]}, ${TIMES(t.n)}. ${t.g} умножить на ${t.n} — ${total}`);
+      return this.finish();
+    }
+    if (st.level === "C") {
+      const hide = Math.random() < .5 ? "size" : "count", right = hide === "size" ? t.g : t.n;
+      $("#rec").innerHTML = this.recordHtml({ hide, noHints: true });
+      say(hide === "size" ? `Сколько ${nm[0]} ${nm[1]}?` : `Сколько ${nm[2]}?`);
+      const other = hide === "size" ? t.n : t.g;
+      const opts = [right, other];
+      for (const d of [1, -1, 2, -2]) if (opts.length < 3 && right + d >= 2 && right + d <= 6 && !opts.includes(right + d)) opts.push(right + d);
+      opts.sort(() => Math.random() - .5);
+      $("#answers").innerHTML = opts.map(v => `<button class="choice big2" data-v="${v}">${v}</button>`).join("");
+      $("#answers").onclick = e => {
+        const b = e.target.closest(".choice"); if (!b || t.finished) return;
+        if (+b.dataset.v === right) { $("#answers").innerHTML = ""; $("#rec").innerHTML = this.recordHtml({ noHints: true }); this.light(hide); say(`${t.g} умножить на ${t.n} — ${total}`); this.finish(); }
+        else { t.errors++; b.classList.add("wrong", "off"); log(`  выбрал ${b.dataset.v}, надо ${right}`); this.light(hide); }
+      };
+      return;
+    }
+    // A и B: показать, что значит каждое число
+    $("#rec").innerHTML = this.recordHtml({ tappable: true, fade: st.level === "B" });
+    t.asks = Math.random() < .5 ? ["size", "count"] : ["count", "size"];
+    this.ask();
+    $("#rec").onclick = e => {
+      const b = e.target.closest(".num"); if (!b || t.finished || !t.asks.length) return;
+      const want = t.asks[0];
+      if (b.dataset.role === want) {
+        b.classList.add("good"); this.light(want); t.asks.shift();
+        setTimeout(() => { if (t.asks.length) this.ask(); else { say(`По ${NUM[t.g]}, ${TIMES(t.n)}. ${t.g} умножить на ${t.n} — ${total}`); this.finish(); } }, 1300);
+      } else {
+        t.errors++; b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 600);
+        log(`  на «${want === "size" ? "сколько в одной" : "сколько групп"}» нажал ${b.dataset.v || b.textContent}`);
+        this.light(want);
+      }
+    };
+  },
+  ask() {
+    const t = this.task, nm = KIND_NAMES[t.kind];
+    say(t.asks[0] === "size" ? `Покажи: сколько ${nm[0]} ${nm[1]}?` : `Покажи: сколько ${nm[2]}?`);
+  },
+  // подсветить, что значит число: одна группа «подпрыгивает» или все группы по очереди
+  light(role) {
+    const plates = [...document.querySelectorAll("#plates .plate")];
+    plates.forEach(p => p.classList.remove("glow", "glow-one"));
+    if (role === "size") { plates[0].classList.add("glow", "glow-one"); setTimeout(() => plates[0].classList.remove("glow", "glow-one"), 1200); }
+    else plates.forEach((p, k) => setTimeout(() => { p.classList.add("glow"); setTimeout(() => p.classList.remove("glow"), 900); }, 250 * k));
+  },
+  finish() {
+    const t = this.task, st = this.state; t.finished = true;
+    const clean = t.errors === 0;
+    st.history.unshift(clean); st.history = st.history.slice(0, 10); st.badStreak = t.errors >= 2 ? st.badStreak + 1 : 0;
+    log(`  ошибок ${t.errors} → ${clean ? "чисто" : "с ошибками"}`);
+    stars = Math.min(TOTAL, stars + 1); renderStars(); renderLevelButtons(this);
+    setTimeout(() => { $("#next").hidden = false; }, 900);
+  },
+  adapt() {
+    const st = this.state, order = this.levels.map(l => l[0]), i = order.indexOf(st.level);
+    if (st.badStreak >= 2 && i > 0) { st.level = order[i - 1]; st.history = []; st.badStreak = 0; log(`↓ уровень ${st.level}`); return; }
+    if (st.history.length >= 10 && st.history.filter(Boolean).length >= 8 && i < order.length - 1) { st.level = order[i + 1]; st.history = []; log(`↑ уровень ${st.level}`); }
+  },
+};
+
 /* ───────── эскизы следующих ступеней ───────── */
 const sketch = (id, title, sayText, info, mat, answers = "", hf = ".7") => ({
   id, title, live: false, info,
   start() { $("#mat").className = "mat"; $("#mat").style.setProperty("--hf", hf); $("#mat").innerHTML = mat(); $("#answers").innerHTML = answers; say(sayText); renderStars(4); },
 });
 const steps = [
-  step0, step1, step2,
-  sketch("3", "Сложение → умножение", "По три, четыре раза",
-    `<p>Показ, решать не надо. Запись <b>3 + 3 + 3 + 3</b> сворачивается в <b>3 × 4</b>. Под числами значки: «3» — три яблока, «4» — четыре тарелки. Цифры одного цвета: цветная метка у ребёнка с РАС легко заменяет смысл.</p>`,
-    () => `<div class="plates" style="--n:4">${[1, 2, 3, 4].map(() => plate(3, "apple", { s: 130 })).join("")}</div>
-      <div class="eq sm"><span>3</span>+<span>3</span>+<span>3</span>+<span>3</span>=<span>12</span></div>
-      ${ex(3, 4, { cls: "eq", tail: "<span>=</span><span>12</span>" })}`, "", ".34"),
+  step0, step1, step2, step3,
   sketch("4", "Картинка → пример", "Какой пример?",
     `<p>Неверные варианты отличаются <b>числом</b>; перевёрнутого примера (3 × 4) среди них нет до ступени 7. Значки под числами в кнопках — сначала есть (ребёнок сверяет их с картинкой), потом бледнеют и исчезают. «+» среди вариантов — когда значков уже нет. Ошибка гасит кнопку, без текста.</p>`,
     () => `<div class="plates" style="--n:3">${[1, 2, 3].map(() => plate(4, "apple", { s: 200 })).join("")}</div>`,
