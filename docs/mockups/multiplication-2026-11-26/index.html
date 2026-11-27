@@ -301,6 +301,7 @@ const step0 = {
     $("#mat").innerHTML = `<div class="plates" style="--n:2">${counts.map(n => `<div class="plate" style="--s:240px">${fruitsHtml(n, "apple", sc ? scatter(n) : null)}</div>`).join("")}</div>
       <div class="pairs" id="pairs" hidden></div><button class="next" id="next" hidden aria-label="Дальше">→</button>`;
     $("#next").onclick = () => { this.adapt(); this.next(); };
+    document.querySelectorAll("#answers .ans").forEach(b => { b.className = "ans"; });
     say("Поровну?"); renderStars();
     if (st.level === "R") this.rows(false);
     this.renderLevel();
