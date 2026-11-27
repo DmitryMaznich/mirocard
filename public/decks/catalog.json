@@ -223,6 +223,84 @@
       ]
     },
     {
+      "id": "multiplication",
+      "version": "0.1.0",
+      "title": {
+        "ru": "Умножение",
+        "sl": "Množenje",
+        "en": "Multiplication"
+      },
+      "description": {
+        "ru": "Путь к умножению маленькими шагами: поровну или нет, сделать поровну, счёт группами и переход от сложения к записи умножения. Ответ — нажатием, без слов; уровни приложение меняет само по успехам ребёнка.",
+        "sl": "Pot do množenja v majhnih korakih: enako ali ne, naredi enako, štetje po skupinah in prehod od seštevanja k zapisu množenja. Otrok odgovarja s pritiskom, brez besed; stopnje aplikacija spreminja sama glede na uspeh.",
+        "en": "A path to multiplication in small steps: equal or not, make them equal, counting in groups and moving from addition to the multiplication sentence. The child answers by tapping, without words; the app changes levels by itself as the child succeeds."
+      },
+      "url": "./decks/multiplication_v0.1.0.zip",
+      "status": "beta",
+      "access": "free",
+      "materialLanguages": [
+        "ru",
+        "sl",
+        "en"
+      ],
+      "languageDownload": {
+        "schemaVersion": 1,
+        "core": {
+          "url": "./decks/multiplication_v0.1.0.zip",
+          "version": "0.1.0",
+          "bytes": 59897,
+          "sha256": "9c62bbaafe8f5c5a98f8c08bcdafd5d9eb831536421c7c5b527e6f80afa919a9"
+        },
+        "languages": {
+          "ru": {
+            "url": "./decks/languages/multiplication/ru_v0.1.0.zip",
+            "bytes": 895,
+            "sha256": "4173ab6ef134f859972b6a939658a7004a0e723b5c8b966d84532b99f4a5de30",
+            "language": "ru",
+            "packageId": "multiplication.ru",
+            "version": "0.1.0",
+            "modeIds": [
+              "equal_check",
+              "make_equal",
+              "skip_count",
+              "sum_to_product"
+            ],
+            "audio": "none"
+          },
+          "sl": {
+            "url": "./decks/languages/multiplication/sl_v0.1.0.zip",
+            "bytes": 793,
+            "sha256": "c1dbc38c793011bdb4e2ab8a6c25f14ad7e9055ee5509e8e63ddd8218c9c978a",
+            "language": "sl",
+            "packageId": "multiplication.sl",
+            "version": "0.1.0",
+            "modeIds": [
+              "equal_check",
+              "make_equal",
+              "skip_count",
+              "sum_to_product"
+            ],
+            "audio": "none"
+          },
+          "en": {
+            "url": "./decks/languages/multiplication/en_v0.1.0.zip",
+            "bytes": 772,
+            "sha256": "82bdbd82c8db5a400b2e137e372991117a2a181d4534db0f17ac09911c6e360f",
+            "language": "en",
+            "packageId": "multiplication.en",
+            "version": "0.1.0",
+            "modeIds": [
+              "equal_check",
+              "make_equal",
+              "skip_count",
+              "sum_to_product"
+            ],
+            "audio": "none"
+          }
+        }
+      }
+    },
+    {
       "id": "math_houses",
       "version": "1.3.5",
       "title": {

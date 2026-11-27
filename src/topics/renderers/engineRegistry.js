@@ -28,10 +28,12 @@ import { generateTasks as dailyOrientationEngine }     from "./daily_orientation
 import { generateTasks as letterBridgeEngine }         from "./letter_bridge/engine.js";
 
 import { generateTasks as comparisonLanguagePilotEngine } from "./comparison_language_pilot/engine.js";
+import { generateTasks as multiplicationEngine } from "./multiplication/engine.js";
 
 export const ENGINE_REGISTRY = {
   drawing: drawingEngine,
   comparison_language_pilot: comparisonLanguagePilotEngine,
+  multiplication: multiplicationEngine,
   flashcards:            flashcardsEngine,
   comparison:            comparisonEngine,
   math_houses:           mathHousesEngine,

@@ -26,10 +26,12 @@ import DailyOrientationRenderer     from "./renderers/daily_orientation/index.js
 import LetterBridgeRenderer         from "./renderers/letter_bridge/index.jsx";
 
 import ComparisonLanguagePilotRenderer from "./renderers/comparison_language_pilot/index.jsx";
+import MultiplicationRenderer from "./renderers/multiplication/index.jsx";
 
 export const RENDERER_REGISTRY = {
   drawing: DrawingRenderer,
   comparison_language_pilot: ComparisonLanguagePilotRenderer,
+  multiplication: MultiplicationRenderer,
   flashcards:            FlashcardsRenderer,
   comparison:            ComparisonRenderer,
   math_houses:           MathHousesRenderer,

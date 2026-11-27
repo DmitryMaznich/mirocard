@@ -33,6 +33,9 @@ export const CATALOG_CATEGORIES = {
   games:                    "Практика",
 };
 
+// Same category as «Сравнение» — by reference, so the category value stays one stable string.
+CATALOG_CATEGORIES.multiplication = CATALOG_CATEGORIES.comparison;
+
 export const OTHER_CATEGORY = "Другое";
 export const CATEGORY_ORDER = ["Чтение", "Математика", "Словарный запас", "Практика"];
 

@@ -1,0 +1,120 @@
+/* «Умножение» (multiplication) — own copy of the app's math look (Nunito, blue accent
+   #2563eb, 3D buttons, shared correct/wrong colours); the table with plates comes from
+   the owner's first mockup. Class prefix: mul-. */
+.mul-root {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px;
+  padding: 8px clamp(8px, 2.4vw, 20px) 12px; background: #f0f6ff; color: #1e293b;
+  font-family: "Nunito", sans-serif; user-select: none; -webkit-user-select: none;
+}
+.mul-say { flex: none; display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.mul-speak {
+  flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: #2563eb; color: #fff;
+  font-size: 18px; box-shadow: 0 3px 0 #1d4ed8; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.mul-speak:active { transform: translateY(3px); box-shadow: none; }
+.mul-say-text { font-weight: 800; font-size: clamp(20px, 4.2vw, 30px); line-height: 1.15; }
+
+/* the table: sizes come from the table itself (container queries), not the window */
+.mul-mat {
+  position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; touch-action: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(8px, 2.5cqh, 18px);
+  padding: 8px; border-radius: 14px; border: 1px solid #d8c09f;
+  background: radial-gradient(ellipse at 20% 0%, #f2e4cc, transparent 76%), linear-gradient(150deg, #ebd8ba, #e4cbaa);
+  box-shadow: inset 0 1px 0 #fff5e1; --gap: clamp(10px, 4cqw, 40px); --hf: .7;
+}
+.mul-row { width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: var(--gap); }
+.mul-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+.mul-group {
+  position: relative; flex: none; padding: 0; border: 0; border-radius: 50%; aspect-ratio: 1;
+  width: min(var(--s, 240px), calc((100cqw - 16px - (var(--n, 2) - 1) * var(--gap)) / var(--n, 2)), calc(100cqh * var(--hf)));
+  background: center / contain no-repeat var(--plate); filter: drop-shadow(2px 6px 4px #63452c46);
+  outline: 4px solid transparent; outline-offset: 4px; transition: width .35s ease, outline-color .2s;
+  touch-action: none; -webkit-tap-highlight-color: transparent;
+}
+.mul-mat--small .mul-group { width: min(var(--s, 240px), calc((100cqw - 16px - (var(--n, 2) - 1) * var(--gap)) / var(--n, 2)), calc(100cqh * .36)); }
+.mul-group--box { border-radius: 16%; background: linear-gradient(160deg, #dcc39a, #c2a274); box-shadow: inset 0 3px 8px #7a5a3566; }
+.mul-item { position: absolute; transform: translate(-50%, -50%); pointer-events: none; transition: opacity .3s; filter: drop-shadow(0 2px 2px #6a431e39); }
+.mul-egg {
+  position: absolute; width: 23%; aspect-ratio: .8; transform: translate(-50%, -50%); pointer-events: none;
+  border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 35% 30%, #fffdf8, #f1e6d3 65%, #d8c4a2); box-shadow: 0 2px 3px #0003;
+}
+.mul-faded .mul-item, .mul-faded .mul-egg { opacity: .25; }
+.mul-group--ok { outline-color: #16a34a; }
+.mul-group--more, .mul-group--from { outline: 4px dashed #c2410c; }
+.mul-group--to { outline: 4px dashed #2563eb; }
+.mul-group--sel, .mul-group--drop { outline: 4px solid #2563eb; }
+.mul-group--next { outline: 4px solid #2563eb; animation: mul-pulse 1.1s ease-in-out infinite; }
+.mul-group--from, .mul-group--to { animation: mul-pulse 1s ease-in-out infinite; }
+.mul-group--dim { opacity: .5; }
+.mul-group--glow { outline: 4px solid #16a34a; outline-offset: 6px; }
+.mul-group--bump .mul-item, .mul-group--bump .mul-egg { animation: mul-bump .5s ease 2; }
+@keyframes mul-pulse { 50% { outline-offset: 10px; } }
+@keyframes mul-bump { 50% { transform: translate(-50%, -50%) scale(1.18); } }
+@keyframes mul-pop { from { transform: scale(.3); opacity: 0; } }
+@keyframes mul-shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+
+/* one-to-one rows under the groups */
+.mul-rows { display: grid; gap: 6px; --a: min(44px, 11cqw, 11cqh); }
+.mul-rows-line { display: flex; gap: 4px; padding: 3px 8px; border-radius: 30px; background: #fbf5e9aa; }
+.mul-rows-cell { width: var(--a); height: var(--a); display: grid; place-items: center; border-radius: 50%; }
+.mul-rows-cell img { width: 88%; animation: mul-pop .35s both; }
+.mul-rows-cell--extra { outline: 3px dashed #c2410c; outline-offset: -1px; background: #fff1e6; }
+.mul-rows-cell--gap { border: 2px dashed #c9b79a; }
+
+/* answers: the app's 3D button formula */
+.mul-answers { flex: none; display: flex; gap: clamp(8px, 2vw, 18px); justify-content: center; flex-wrap: wrap; min-height: 8px; }
+.mul-btn {
+  min-height: 64px; min-width: 88px; padding: 6px 16px; border-radius: 16px; border: 3px solid #bfdbfe; background: #fff;
+  box-shadow: 0 4px 0 #93c5fd; color: #1e293b; font: 800 clamp(24px, 5.5vw, 34px)/1 "Nunito", sans-serif;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.mul-btn:active { transform: translateY(3px); box-shadow: none; }
+.mul-btn--wide { flex: 1 1 0; max-width: 260px; min-height: clamp(64px, 12vh, 92px); }
+.mul-btn--right { border-color: #16a34a; background: #dcfce7; box-shadow: 0 4px 0 #16a34a; }
+.mul-btn--wrong { border-color: #ef4444; background: #fef2f2; box-shadow: 0 4px 0 #ef4444; animation: mul-shake .4s; }
+.mul-btn--off { opacity: .35; pointer-events: none; }
+.mul-sym { font-size: clamp(38px, 8vw, 54px); color: #2563eb; line-height: 1; }
+.mul-bars { display: flex; gap: 4px; align-items: flex-end; }
+.mul-bars i { width: 14px; border-radius: 3px; background: #c9a77c; }
+
+/* numbers over groups (skip counting) */
+.mul-slot { min-width: 2.2em; height: 1.5em; display: grid; place-items: center; }
+.mul-badge {
+  min-width: 40px; padding: 1px 9px; border-radius: 20px; background: #fff; border: 2px solid #2563eb; color: #1d4ed8;
+  font: 800 clamp(16px, 4cqw, 24px)/1.25 "Nunito", sans-serif; text-align: center; animation: mul-pop .35s both;
+}
+.mul-badge--faded { opacity: .22; }
+.mul-count {
+  position: absolute; transform: translate(-10%, -95%); min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px; z-index: 1;
+  background: #fff; border: 2px solid #c2410c; color: #c2410c; font: 800 13px/18px "Nunito", sans-serif; text-align: center;
+  animation: mul-pop .3s both; pointer-events: none;
+}
+
+/* addition → multiplication */
+.mul-sum { display: flex; align-items: flex-start; gap: .28em; font: 800 clamp(22px, 6cqw, 38px)/1.1 "Nunito", sans-serif; min-height: 2.1em; transition: opacity .5s; }
+.mul-sum--gone { opacity: .25; }
+.mul-term { display: flex; flex-direction: column; align-items: center; animation: mul-pop .3s both; }
+.mul-times { font: 800 .6em/1.2 "Nunito", sans-serif; color: #1d4ed8; border: 2px solid #2563eb; border-radius: 10px; padding: 0 .35em; margin-top: 3px; animation: mul-pop .3s both; }
+.mul-record { display: flex; align-items: flex-start; gap: .3em; font: 800 clamp(30px, 9cqw, 56px)/1.1 "Nunito", sans-serif; animation: mul-pop .45s both; }
+.mul-factor { display: flex; flex-direction: column; align-items: center; }
+.mul-num { border: 0; background: transparent; font: inherit; color: inherit; padding: 0 .14em; border-radius: 10px; min-width: 1em; touch-action: manipulation; }
+.mul-num--tap { outline: 3px dashed #93c5fd; outline-offset: 2px; }
+.mul-num--good { background: #dcfce7; outline: 3px solid #16a34a; }
+.mul-num--bad { background: #fef2f2; outline: 3px solid #ef4444; animation: mul-shake .4s; }
+.mul-num--slot { border: 3px dashed #a99a80; border-radius: 10px; min-width: 1.1em; color: transparent; }
+.mul-hint { display: flex; gap: 2px; margin-top: 4px; height: .38em; align-items: center; transition: opacity .3s; }
+.mul-hint img { height: 100%; }
+.mul-hint--faded { opacity: .3; }
+.mul-mini-plate { height: 100%; aspect-ratio: 1; border-radius: 50%; background: center / contain var(--plate); }
+.mul-mini-box { height: 100%; aspect-ratio: 1; border-radius: 22%; background: #c9ab7e; }
+.mul-mini-egg { height: 100%; aspect-ratio: .8; border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%; background: #f1e6d3; box-shadow: 0 1px 1px #0003; }
+
+/* drag ghost, hint arrow, demo hand (fixed to the viewport while moving, never at a screen edge) */
+.mul-ghost { position: fixed; width: 60px; pointer-events: none; z-index: 50; transform: translate(-50%, -50%) scale(1.1); filter: drop-shadow(0 6px 6px #0004); }
+.mul-arrow { position: absolute; height: 0; border-top: 4px dashed #2563eb; transform-origin: left center; pointer-events: none; }
+.mul-arrow::after { content: ""; position: absolute; right: -4px; top: -12px; border: 10px solid transparent; border-left: 16px solid #2563eb; }
+.mul-demo-hand { position: fixed; z-index: 45; font-size: 40px; pointer-events: none; transform: translate(-20%, -10%); filter: drop-shadow(0 3px 3px #0005); }
+.mul-demo-item { position: fixed; z-index: 44; width: 54px; pointer-events: none; transform: translate(-50%, -50%); filter: drop-shadow(0 5px 5px #0004); }

@@ -326,7 +326,9 @@ faded out as a prompt). Not the app's Slovenian UI localization. **Read
 
 For the owner's son (minimally verbal, ASD, counts confidently). Ladder: поровну → счёт группами → запись → ряды →
 поворот; numbers are not colour-coded (overselectivity), the meaning of a number is an icon under it, faded by plan.
-No code yet. **Read `docs/multiplication-methodology.md` first** — evidence table, rules, ladder, open questions,
+Topic `multiplication` 0.1.0 in the app since 2026-11-27 (catalog `beta`, steps 0–3 as modes, lesson languages
+ru/sl/en; the multiplication record order and sign belong to the language package — `tools/multiplication/README.md`).
+**Read `docs/multiplication-methodology.md` first** — evidence table, rules, ladder, open questions,
 per-step polishing log; one mockup `docs/mockups/multiplication-2026-11-26/index.html` (step switcher, steps 0–3 live).
 
 ## Разряды числа (place_value)
