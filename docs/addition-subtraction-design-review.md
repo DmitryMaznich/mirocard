@@ -73,12 +73,19 @@ Owner's decisions (step 1 of 2):
   is the child's left hand. The screen already showed the child's left hand on the left, right on the right,
   palms towards the child — the earlier «hands are swapped» note was a misreading of the prop name. Commented
   in `FingersShowTask.jsx` (`ChildHands`).
-- **Step 2 (not done):** different fingers inside one hand (2 = index+middle, thumb+index, thumb+pinky,
-  index+pinky; 3 = thumb+index+middle, index+middle+ring, middle+ring+pinky; 4 = without thumb, without
-  pinky; 1 = thumb, index, pinky — never the middle finger alone). Needs ~12 new right-hand drawings in the
-  style of `public/hands/` (Gemini via `scripts/generate-finger-hands.mjs`, reachable through this
-  environment's proxy), a contact sheet approved by the owner (a folded finger must never read as raised),
-  then vectorised like `handShapes.js`; `recognize` tasks then carry the finger set, not only a count.
+- **Step 2 (done the same day): different fingers inside one hand** in «Пальцы → цифра». `HAND_POSES` in
+  `fingerTasks.js` lists the fingers per count (t i m r p): 1 = i / t / p, 2 = im / ti / tp / ip,
+  3 = imr / tim / mrp, 4 = imrp / timr (the middle finger alone never). The first of each is the canonical pose
+  (`public/hands/hand_right_<n>.webp`), the others `public/hands/combo_<pose>.webp`. A task draws the split and
+  then each hand's fingers at random (`leftPose` / `rightPose`); these hands are raster `<img>` (`PoseHands`,
+  mirrored for the child's right hand) — the vector `AnimatedHand` has only the canonical poses.
+- How the drawings were made: `scripts/generate-finger-combos.mjs` (Gemini `gemini-3-pro-image`, references
+  `hand_right_5` + `hand_right_2`; in the cloud sandbox run with `NODE_USE_ENV_PROXY=1`, the proxy injects the
+  key) wrote 3–4 drafts per pose to `tools/addition_subtraction/finger-combos/` (PNGs are gitignored — local
+  only); the owner approved a contact sheet; `scripts/build-finger-combos.mjs` (the approved draft per pose in
+  `APPROVED`) cuts the white out and places the wrist where the existing hands have it. Pitfall: the model kept
+  spreading the thumb to the side in poses without it (a picture of 2 that counts as 3) — the prompt now says so
+  explicitly; always count the fingers on every draft before showing it.
 
 ## Mode numbering changed 2026-10-07
 

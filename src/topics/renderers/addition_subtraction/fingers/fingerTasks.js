@@ -35,6 +35,28 @@ export function fingerSplits(n) {
   return splits;
 }
 
+// Which fingers can show a count on one hand (t i m r p = thumb index middle ring pinky).
+// The first one is the canonical pose of «Обучение» (public/hands/hand_right_<n>.webp);
+// the others are public/hands/combo_<pose>.webp (owner-approved 2026-11-27). The
+// middle finger alone is left out on purpose.
+export const HAND_POSES = {
+  0: [""],
+  1: ["i", "t", "p"],
+  2: ["im", "ti", "tp", "ip"],
+  3: ["imr", "tim", "mrp"],
+  4: ["imrp", "timr"],
+  5: ["timrp"],
+};
+
+export function handPoseImage(pose) {
+  const count = pose.length;
+  return pose === HAND_POSES[count][0] ? `hands/hand_right_${count}.webp` : `hands/combo_${pose}.webp`;
+}
+
+function pick(items, random) {
+  return items[Math.floor(random() * items.length)];
+}
+
 function shuffled(items, random) {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i--) {
@@ -73,20 +95,23 @@ export function generateFingersShowTasks(params = {}, cards = FINGER_CARDS, rand
       .map(card => generateFingersShow(card, "show"));
   }
 
-  // Пальцы → цифра: one task per number per round, its split drawn at random.
-  // 0 (two fists) is left out: nothing to count.
+  // Пальцы → цифра: one task per number per round; the split between the hands
+  // and the fingers on each hand are drawn at random. 0 (two fists) is left out.
   const numbers = pool.map(card => card.params?.n ?? 0).filter(n => n > 0);
   return shuffledRounds(numbers, 10, random, n => n).map((n) => {
-    const splits = fingerSplits(n);
-    const { left, right } = splits[Math.floor(random() * splits.length)];
+    const { left, right } = pick(fingerSplits(n), random);
+    const leftPose = pick(HAND_POSES[left], random);
+    const rightPose = pick(HAND_POSES[right], random);
     return {
       type: "fingers_show",
       variant: "recognize",
-      cardId: `frec_${n}_${left}_${right}`,
+      cardId: `frec_${n}_${leftPose || "0"}_${rightPose || "0"}`,
       conceptId: `frec_${n}`,
       n,
       left,
       right,
+      leftPose,
+      rightPose,
     };
   });
 }

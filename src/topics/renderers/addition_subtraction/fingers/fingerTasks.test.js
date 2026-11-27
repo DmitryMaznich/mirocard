@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
-import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS } from "./fingerTasks.js";
+import fs from "fs";
+import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS, HAND_POSES, handPoseImage } from "./fingerTasks.js";
 
 describe("FingerSystem", () => {
   it("FINGER_MAP has 11 entries 0..10", () => {
@@ -93,6 +94,26 @@ describe("generateTasks – fingers_show", () => {
     }
     const fives = new Set(tasks.filter(t => t.n === 5).map(t => `${t.left}+${t.right}`));
     expect(fives.size).toBeGreaterThan(1);
+  });
+
+  it("Пальцы → цифра: each hand's fingers match its count, and other fingers than the canonical ones come up", () => {
+    const tasks = generateFingersShowTasks({ task: "recognize" });
+    for (const t of tasks) {
+      expect(t.leftPose.length).toBe(t.left);
+      expect(t.rightPose.length).toBe(t.right);
+    }
+    const poses = new Set(tasks.flatMap(t => [t.leftPose, t.rightPose]));
+    expect(poses.has("ti") || poses.has("tp") || poses.has("ip")).toBe(true);
+  });
+
+  it("every hand pose has its drawing, the middle finger alone is never one", () => {
+    for (const [count, poses] of Object.entries(HAND_POSES)) {
+      for (const pose of poses) {
+        expect(pose.length).toBe(Number(count));
+        expect(fs.existsSync(`public/${handPoseImage(pose)}`)).toBe(true);
+      }
+    }
+    expect(HAND_POSES[1]).not.toContain("m");
   });
 
   it("fingerSplits lists every way to split n over two hands", () => {

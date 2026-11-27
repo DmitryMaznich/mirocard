@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
+import { handPoseImage } from "./fingerTasks.js";
 import { FingersKeypad } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
@@ -14,6 +15,19 @@ function ChildHands({ left, right, className = "fng-show-hands" }) {
     <div className={className}>
       <AnimatedHand count={left} side="right" style={{ flex: 1, minWidth: 0, height: "100%" }} />
       <AnimatedHand count={right} side="left" style={{ flex: 1, minWidth: 0, height: "100%" }} />
+    </div>
+  );
+}
+
+// «Пальцы → цифра» shows any fingers, not only the canonical pose, so its hands are
+// the raster drawings (the vector AnimatedHand has the canonical poses only). Same
+// sides as ChildHands: the drawing as is = the child's left hand, mirrored = right.
+function PoseHands({ leftPose, rightPose }) {
+  const base = import.meta.env?.BASE_URL ?? "/";
+  return (
+    <div className="fng-show-hands">
+      <img className="fng-pose-hand" src={base + handPoseImage(leftPose)} alt="" draggable={false} />
+      <img className="fng-pose-hand fng-pose-hand--mirror" src={base + handPoseImage(rightPose)} alt="" draggable={false} />
     </div>
   );
 }
@@ -108,7 +122,9 @@ function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
           {shown}
         </div>
       </div>
-      <ChildHands left={task.left ?? 0} right={task.right ?? 0} />
+      {task.leftPose !== undefined
+        ? <PoseHands leftPose={task.leftPose} rightPose={task.rightPose} />
+        : <ChildHands left={task.left ?? 0} right={task.right ?? 0} />}
       <div className="fng-add-kbd-zone">
         <FingersKeypad onDigit={handleDigit} onDelete={handleDelete} active={!done} />
       </div>
