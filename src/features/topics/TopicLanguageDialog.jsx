@@ -70,7 +70,11 @@ function LanguagePicker({ request }) {
         await persistStudentTopicLink(request.studentId, entry.id, { params: { ...currentLink.params, topicContentLanguage: selected } });
       }
       close(installed);
-    } catch { submitting.current = false; setError(true); setBusy(false); }
+    } catch (err) {
+      submitting.current = false; setBusy(false);
+      // A topic that needs a newer app must say so, not «check your connection».
+      setError(err?.code === "app_too_old" ? { appTooOld: err.minAppVersion } : true);
+    }
   }
   return (
     <Modal title={t("topicLanguage.title", { title })} onClose={busy ? undefined : () => close()} closeOnOverlay={!busy} showCloseButton={!busy}
@@ -87,7 +91,7 @@ function LanguagePicker({ request }) {
       </div>
       <p className="param-hint">{t("topicLanguage.hint")}</p>
       {busy && <p role="status">{progress == null ? t("topics.downloading") : `${Math.round(progress * 100)}%`}</p>}
-      {error && <p className="form-error" role="alert">{t("topicLanguage.failed")}</p>}
+      {error && <p className="form-error" role="alert">{error.appTooOld ? t("topicLanguage.appTooOld", { version: error.appTooOld }) : t("topicLanguage.failed")}</p>}
     </Modal>
   );
 }

@@ -832,7 +832,7 @@
         "sl": "Množenje",
         "en": "Multiplication"
       },
-      "version": "0.2.0",
+      "version": "0.2.1",
       "renderer": "multiplication",
       "sources": [
         "src/topics/renderers/multiplication",
@@ -842,7 +842,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "multiplication",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "title": {
           "ru": "Умножение",
           "sl": "Množenje",
@@ -853,7 +853,7 @@
           "sl": "Pot do množenja v majhnih korakih: enako ali ne, naredi enako, štetje po skupinah in prehod od seštevanja k zapisu množenja. Otrok odgovarja s pritiskom, brez besed; stopnje aplikacija spreminja sama glede na uspeh.",
           "en": "A path to multiplication in small steps: equal or not, make them equal, counting in groups and moving from addition to the multiplication sentence. The child answers by tapping, without words; the app changes levels by itself as the child succeeds."
         },
-        "url": "./decks/multiplication_v0.2.0.zip",
+        "url": "./decks/multiplication_v0.2.1.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
@@ -864,10 +864,10 @@
         "languageDownload": {
           "schemaVersion": 1,
           "core": {
-            "url": "./decks/multiplication_v0.2.0.zip",
-            "version": "0.2.0",
-            "bytes": 59891,
-            "sha256": "88b80f4196e6cc436ab6ef089721b66e9179321a9dbfabce053466aaca89736f"
+            "url": "./decks/multiplication_v0.2.1.zip",
+            "version": "0.2.1",
+            "bytes": 59913,
+            "sha256": "b959b43e67028b18973b53f4d87f2d8dfb03b7b587f9f0cc0fc9bec6e4eb9754"
           },
           "languages": {
             "ru": {
@@ -918,7 +918,7 @@
           }
         }
       },
-      "sourceUpdatedAt": "2026-11-27T13:27:46+00:00"
+      "sourceUpdatedAt": "2026-11-27T14:06:13+00:00"
     },
     {
       "id": "my_people",

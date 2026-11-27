@@ -158,3 +158,15 @@ describe("a mistake keeps the task where the child is", () => {
     expect(props.onStreakReset).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("an older app (engine without index/total) still shows the lesson", () => {
+  it("renders without the lesson strip instead of failing", async () => {
+    const { mode, tasks } = tasksFor("equal_check", "ru", "A");
+    const { index, total, ...oldTask } = tasks[0];
+    expect([index, total]).toEqual([0, 8]);
+    await show(mode, oldTask);
+    expect(host.querySelector("[data-testid=mul-say]").textContent).toBe(oldTask.messages["equal.prompt"]);
+    expect(host.querySelector("[data-testid=mul-strip]")).toBeNull();
+    expect(host.querySelectorAll(".mul-shelf button").length).toBe(2);
+  });
+});

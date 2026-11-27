@@ -71,9 +71,10 @@ function validateManifest(manifest, appVersion) {
 
   if (manifest.meta.minAppVersion && appVersion) {
     if (semver.lt(appVersion, manifest.meta.minAppVersion)) {
-      throw new TopicImportError(
+      // `code` lets callers (e.g. the topic language dialog) say «update the app» instead of a generic failure.
+      throw Object.assign(new TopicImportError(
         `Обновите приложение до версии ${manifest.meta.minAppVersion}`
-      );
+      ), { code: "app_too_old", minAppVersion: manifest.meta.minAppVersion });
     }
   }
 

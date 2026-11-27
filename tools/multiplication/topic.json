@@ -1,14 +1,14 @@
 {
   "meta": {
     "id": "multiplication",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "renderer": "multiplication",
     "title": {
       "ru": "Умножение",
       "sl": "Množenje",
       "en": "Multiplication"
     },
-    "minAppVersion": "1.1.239",
+    "minAppVersion": "1.1.238",
     "avatar": "media/avatar.svg"
   },
   "languageContract": {
@@ -74,7 +74,7 @@
     "selectionScope": "topic",
     "delivery": {
       "version": 1,
-      "coreUrl": "./decks/multiplication_v0.2.0.zip"
+      "coreUrl": "./decks/multiplication_v0.2.1.zip"
     }
   },
   "modes": [

@@ -61,16 +61,21 @@ export function Top({ task, text, soundEnabled, finished = false }) {
   const language = lessonLanguage(task);
   useEffect(() => { speakLesson(text, language, { enabled: soundEnabled }); }, [text, language, soundEnabled]);
   useEffect(() => () => stopLessonVoice(), []);
-  const done = task.index + (finished ? 1 : 0);
+  // The lesson strip needs index/total from the engine (app ≥ 1.1.239). An older app runs the older
+  // engine from its own bundle: then there is simply no strip, the rest of the screen works the same.
+  const total = Number.isInteger(task.total) ? task.total : 0;
+  const done = (task.index ?? 0) + (finished ? 1 : 0);
   return (
     <div className="mul-top" lang={language}>
       <button type="button" className="mul-speak" aria-label="🔊" onClick={() => speakLesson(text, language, { enabled: true })}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       <span className="mul-say-text" data-testid="mul-say">{text}</span>
-      <span className="mul-strip" data-testid="mul-strip">
-        {Array.from({ length: task.total }, (_, i) => <i key={i} className={i < done ? "on" : i === done ? "now" : ""} />)}
-      </span>
+      {total > 0 && (
+        <span className="mul-strip" data-testid="mul-strip">
+          {Array.from({ length: total }, (_, i) => <i key={i} className={i < done ? "on" : i === done ? "now" : ""} />)}
+        </span>
+      )}
     </div>
   );
 }
