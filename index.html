@@ -108,6 +108,7 @@
         const animate = (selector, frames, timing) => {
           const node=typeof selector==='string'?splash.querySelector(selector):selector;
           const animation = node.animate(frames, { fill:'both', iterations:1, ...timing });
+          animation.startTime=window.__mironiumSplashStartedAt;
           animations.push(animation);
           return animation;
         };
