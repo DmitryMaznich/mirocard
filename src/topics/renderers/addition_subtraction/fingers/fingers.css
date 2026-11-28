@@ -117,32 +117,24 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* lets the dots size themselves from this hand's width */
+  /* lets the ▼ / ▲ buttons size themselves from this hand's width */
   container-type: inline-size;
 }
-.fng-tap-hand__img {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-.fng-finger-dots {
+/* ▼ / ▲ under the wrist (owner, 2026-11-28): off the palm, so they never cover the fingers. */
+.fng-hand-buttons {
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  gap: 2.5cqw;
-  padding: 6px 0 4px;
+  gap: 8cqw;
+  padding: 8px 0 4px;
 }
-.fng-finger-dot {
-  width: min(17cqw, 72px);
+.fng-hand-btn {
+  width: min(30cqw, 88px);
   aspect-ratio: 1;
   border: none;
   border-radius: 50%;
-  background: #22c55e;
   color: #fff;
-  font-size: min(7cqw, 28px);
+  font-size: min(12cqw, 36px);
   line-height: 1;
   display: flex;
   align-items: center;
@@ -150,18 +142,14 @@
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
-  transition: background-color 0.15s ease, transform 0.12s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.2s ease, transform 0.15s ease;
 }
-.fng-finger-dot:active { transform: scale(0.9); }
-.fng-finger-dot.is-up { background: #ef4444; }
-.fng-finger-dot:disabled { pointer-events: none; }
-/* A dot whose tap would lead to an undrawn pose: its own colour (down green / up
-   red still tells the finger's state), but pale and flat. */
-.fng-finger-dot.is-blocked {
-  box-shadow: none;
-  opacity: 0.28;
-}
+.fng-hand-btn:active { transform: scale(0.9); }
+.fng-hand-btn--up { background: #22c55e; }
+.fng-hand-btn--down { background: #ef4444; }
+.fng-hand-btn:disabled { opacity: 0.22; box-shadow: none; pointer-events: none; }
+
 /* Landscape (tablet): the hands sit far apart, so the model goes in the gap
    between them instead of taking height from them. */
 @media (orientation: landscape) and (min-aspect-ratio: 5/4) {

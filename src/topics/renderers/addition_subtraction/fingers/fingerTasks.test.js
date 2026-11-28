@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 import fs from "fs";
-import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS, HAND_POSES, handPoseImage, canToggleFinger, DRAWN_POSES } from "./fingerTasks.js";
+import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS, HAND_POSES, handPoseImage } from "./fingerTasks.js";
 
 describe("FingerSystem", () => {
   it("FINGER_MAP has 11 entries 0..10", () => {
@@ -114,27 +114,6 @@ describe("generateTasks – fingers_show", () => {
       }
     }
     expect(HAND_POSES[1]).not.toContain("m");
-  });
-
-  it("finger dots only lead to drawn poses, and every count 0–5 is reachable from a fist", () => {
-    expect(DRAWN_POSES.size).toBe(14);
-    expect(canToggleFinger("", "i")).toBe(true);
-    expect(canToggleFinger("", "t")).toBe(true);
-    expect(canToggleFinger("", "m")).toBe(false); // the middle finger alone is never drawn
-    expect(canToggleFinger("", "r")).toBe(false);
-    expect(canToggleFinger("i", "p")).toBe(true);  // «коза»
-    expect(canToggleFinger("ip", "m")).toBe(false);
-    const seen = new Set([""]);
-    const queue = [""];
-    while (queue.length) {
-      const pose = queue.shift();
-      for (const f of "timrp") {
-        if (!canToggleFinger(pose, f)) continue;
-        const next = [..."timrp"].filter(x => (pose.includes(f) ? pose.replace(f, "") : pose + f).includes(x)).join("");
-        if (!seen.has(next)) { seen.add(next); queue.push(next); }
-      }
-    }
-    expect(seen.size).toBe(14);
   });
 
   it("fingerSplits lists every way to split n over two hands", () => {
