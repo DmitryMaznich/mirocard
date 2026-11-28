@@ -236,14 +236,48 @@
 /* «Пальцы → цифра»: the answer field, the hands, the keypad — the topic's own answer field
    and keypad («Найди неизвестное», «Слушай и посчитай»: white, grey border, print digits),
    copied here as this family's own classes. */
-.fng-pose-hand {
+/* A raster hand: the box keeps the drawing's 256×320 proportion inside its cell, so the
+   hint numbers can sit on the fingertips by percent. */
+.fng-pose-wrap {
   flex: 1;
   min-width: 0;
   height: 100%;
-  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+.fng-pose-box {
+  position: relative;
+  width: min(100cqw, 80cqh);
+  aspect-ratio: 256 / 320;
+}
+.fng-pose-hand {
+  display: block;
+  width: 100%;
+  height: 100%;
   user-select: none;
   -webkit-user-drag: none;
 }
+.fng-tip-mark {
+  position: absolute;
+  width: 15%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: clamp(14px, 6cqw, 26px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  animation: fng-tip-in 0.25s ease;
+  pointer-events: none;
+}
+@keyframes fng-tip-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 .fng-pose-hand--mirror { transform: scaleX(-1); }
 
 .fng-recognize .fng-show-hands {

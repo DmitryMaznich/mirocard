@@ -86,7 +86,11 @@ Owner's decisions (step 1 of 2):
   пальцев?»; the topic's answer field (white, grey 4 px border, Nunito 900 — no bare «?», an empty field shows a
   blinking caret); the hands; the topic's white keypad in print digits (1–5 / 6–0, ⌫ on the right, max two
   digits); «Готово» → «Дальше». Checked only on «Готово» — the old automatic check after the last digit gave away
-  that 10 has two digits. Wrong: shake, clear, star series reset, the task stays. No hint yet.
+  that 10 has two digits. Wrong: shake, clear, star series reset, the task stays. Hint after the 2nd wrong
+  answer and every one after it: the raised fingers get blue numbers one by one, 1 … n in reading order (left
+  hand from the left, then the right one), and they go 1.8 s after the last (`playHint`, `FINGER_TIPS` in
+  `fingerTasks.js` — fingertips of every drawing, found by the outline and checked by eye). Open question:
+  a setting «Пальцы: обычные / разные» — mockup `docs/mockups/addition-subtraction/2026-11-28-fingers-variety.html`.
 - **Drawing bug (2026-11-28, seen by the owner: 9 fingers on the screen, answer 8):** the approved `combo_mrp`
   («middle + ring + pinky», draft mrp_3) has FOUR fingers up. Pose removed (`HAND_POSES[3]` = imr, tim), file
   deleted, all 13 remaining drawings re-counted by eye. An automatic count by the outline does not work: folded

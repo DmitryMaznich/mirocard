@@ -50,6 +50,24 @@ export const HAND_POSES = {
   5: ["timrp"],
 };
 
+// Fingertips of the raised fingers on each drawing, in its own 256×320 pixels (the
+// drawing as is = the child's left hand; mirror x for the right one). Found by the
+// outline and checked by eye on 2026-11-28 — the «Пальцы → цифра» hint numbers them.
+export const FINGER_TIPS = {
+  i: { i: [94, 28] },
+  t: { t: [24, 143] },
+  p: { p: [207, 47] },
+  im: { i: [87, 48], m: [140, 28] },
+  ti: { t: [24, 142], i: [81, 40] },
+  tp: { t: [24, 143], p: [226, 83] },
+  ip: { i: [92, 23], p: [202, 61] },
+  imr: { i: [82, 48], m: [134, 28], r: [179, 46] },
+  tim: { t: [24, 141], i: [80, 40], m: [132, 20] },
+  imrp: { i: [87, 48], m: [137, 28], r: [183, 46], p: [215, 90] },
+  timr: { t: [24, 143], i: [81, 40], m: [131, 20], r: [182, 38] },
+  timrp: { t: [28, 147], i: [80, 50], m: [135, 29], r: [181, 47], p: [223, 91] },
+};
+
 export function handPoseImage(pose) {
   const count = pose.length;
   return pose === HAND_POSES[count][0] ? `hands/hand_right_${count}.webp` : `hands/combo_${pose}.webp`;

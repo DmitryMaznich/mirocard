@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 import fs from "fs";
-import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS, HAND_POSES, handPoseImage } from "./fingerTasks.js";
+import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS, HAND_POSES, handPoseImage, FINGER_TIPS } from "./fingerTasks.js";
 
 describe("FingerSystem", () => {
   it("FINGER_MAP has 11 entries 0..10", () => {
@@ -114,6 +114,14 @@ describe("generateTasks – fingers_show", () => {
       }
     }
     expect(HAND_POSES[1]).not.toContain("m");
+  });
+
+  it("every drawn pose has one marked fingertip per raised finger (the counting hint)", () => {
+    for (const poses of Object.values(HAND_POSES)) for (const pose of poses) {
+      if (!pose) continue;
+      expect(Object.keys(FINGER_TIPS[pose] ?? {}).sort().join("")).toBe([...pose].sort().join(""));
+    }
+    expect(HAND_POSES[3]).not.toContain("mrp"); // its drawing had four fingers up
   });
 
   it("fingerSplits lists every way to split n over two hands", () => {
