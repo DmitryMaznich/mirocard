@@ -52,6 +52,20 @@ the column's own cells stay as they are for now.
   `AudioAnswerPad` of the other modes is unchanged.
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
+## 2026-11-28: «6. Найди знак» (operation_find_sign) — the sign is written into the example
+
+Owner: at the end the «?» must give way to the right sign, written with an animation. Mockup (approved):
+`docs/mockups/addition-subtraction/2026-11-28-find-sign.html`. Done in `FindSignTask` (`index.jsx`) and the
+«Mode 5: Find Sign» block of `src/styles.css`:
+- bold instruction «Найди знак» on top; the example large with spaces, its own markup (not the shared
+  `OperationExpression`), all numbers in ink — the shared result blue is off here;
+- true minus «−» on the choice button (the task keeps `sign: "-"`); the other modes still show a hyphen;
+- step 1 «Что мы сделали?»: «▲ Прибавили / ▼ Убрали», neutral blue arrows (not the sign colours — they'd give
+  away step 2); the «Прибавили ✓» badge keeps its place from the start, so nothing jumps;
+- the right sign: «?» fades, the sign is drawn as SVG strokes (plus: bar left → right, then stem top → down;
+  minus: one bar), teal / red; the whole example lights green; the choices fade to 25 %; `onCorrect` only after
+  that (≈0.9 s for a minus, 1.3 s for a plus), then the session moves on as usual. A wrong choice: as before.
+
 ## 2026-11-27: «1. Покажи на пальцах» (fingers_show) — обучение и две проверки
 
 Owner's decisions (step 1 of 2):

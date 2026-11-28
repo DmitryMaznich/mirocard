@@ -704,24 +704,62 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
   );
 }
 
+// «Найди знак» (redone 2026-11-28 after the mockup docs/mockups/addition-subtraction/2026-11-28-find-sign.html):
+// the bold instruction on top, the example large with spaces and a true minus «−»,
+// step 1 «Что мы сделали?» (▲ Прибавили / ▼ Убрали — neutral arrows, not the sign's
+// colour), step 2 «Какой знак поставить?». The right sign is then WRITTEN into the
+// example (plus: the bar left → right, then the stem top → down; minus: one bar
+// left → right), the whole example lights green, the choices fade, and only then the
+// answer is counted (the session moves on as usual).
+const FIND_SIGN_ACTIONS = [
+  { value: "add",    label: <><span className="operation-find-sign__arrow" aria-hidden="true">▲</span> Прибавили</> },
+  { value: "remove", label: <><span className="operation-find-sign__arrow" aria-hidden="true">▼</span> Убрали</> },
+];
+const FIND_SIGN_SIGNS = [
+  { value: "+", label: "+" },
+  { value: "-", label: "−" },
+];
+const SIGN_WRITE_START_MS = 250;
+const SIGN_STROKE_MS = 420;
+
+function WrittenSign({ sign, writing }) {
+  const minus = sign === "-";
+  return (
+    <span className={`operation-find-sign__slot${writing ? " is-writing" : ""}`} aria-label={writing ? (minus ? "минус" : "плюс") : "пропущенный знак"}>
+      <span className="operation-find-sign__q" aria-hidden="true">?</span>
+      {writing && (
+        <svg viewBox="0 0 58 76" aria-hidden="true" className={`operation-find-sign__svg operation-find-sign__svg--${minus ? "subtract" : "add"}`}>
+          <line className="operation-find-sign__stroke" x1="8" y1="40" x2="50" y2="40" style={{ animationDelay: `${SIGN_WRITE_START_MS}ms` }} />
+          {!minus && (
+            <line className="operation-find-sign__stroke" x1="29" y1="19" x2="29" y2="61" style={{ animationDelay: `${SIGN_WRITE_START_MS + SIGN_STROKE_MS}ms` }} />
+          )}
+        </svg>
+      )}
+    </span>
+  );
+}
+
 function FindSignTask({ task, onCorrect, onIncorrect }) {
   const [step, setStep] = useState(1);
   const [selected, setSelected] = useState(null);
   const [step1Label, setStep1Label] = useState(null);
+  const [writing, setWriting] = useState(false);
+  const [written, setWritten] = useState(false);
   const [helperOpen, setHelperOpen] = useState(false);
-  const timerRef = useRef(null);
+  const timers = useRef([]);
+  const later = (fn, ms) => { timers.current.push(setTimeout(fn, ms)); };
 
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   function handleStep1(value) {
     if (selected != null) return;
     setSelected(value);
     if (value === task.action) {
       const label = ACTION_OPTIONS_PAST.find((o) => o.value === value)?.label;
-      timerRef.current = setTimeout(() => { setStep1Label(label); setStep(2); setSelected(null); }, 500);
+      later(() => { setStep1Label(label); setStep(2); setSelected(null); }, 500);
     } else {
       onIncorrect(task.conceptId, task.cardId);
-      timerRef.current = setTimeout(() => setSelected(null), 700);
+      later(() => setSelected(null), 700);
     }
   }
 
@@ -729,32 +767,42 @@ function FindSignTask({ task, onCorrect, onIncorrect }) {
     if (selected != null) return;
     setSelected(value);
     if (value === task.sign) {
-      onCorrect(task.conceptId, task.cardId);
+      setWriting(true);
+      const end = SIGN_WRITE_START_MS + SIGN_STROKE_MS * (task.sign === "-" ? 1 : 2);
+      later(() => setWritten(true), end);
+      later(() => onCorrect(task.conceptId, task.cardId), end + 200);
     } else {
       onIncorrect(task.conceptId, task.cardId);
-      timerRef.current = setTimeout(() => setSelected(null), 700);
+      later(() => setSelected(null), 700);
     }
   }
 
   return (
     <div className="operation-stage operation-stage--find-sign">
-      <OperationExpression task={task} missingSign answered={step === 2 && selected === task.sign} />
-      {step === 2 && step1Label && (
-        <div className="operation-find-sign__step1-badge">
-          {step1Label} <span className="operation-find-sign__step1-check">✓</span>
-        </div>
-      )}
-      <div className="operation-link-drill__question">
-        {step === 1 ? "Что мы сделали?" : "Какой знак нужно поставить?"}
+      <div className="operation-find-sign__title">Найди знак</div>
+      <div className={`operation-expression operation-find-sign__expression${written ? " is-written" : ""}`} aria-label="пример">
+        <span className="operation-expression__number">{task.start}</span>
+        <WrittenSign sign={task.sign} writing={writing} />
+        <span className="operation-expression__number">{task.delta}</span>
+        <span className="operation-expression__equals">=</span>
+        <span className="operation-expression__number">{task.result}</span>
       </div>
-      <ChoiceGrid
-        key={step}
-        options={step === 1 ? ACTION_OPTIONS_PAST : SIGN_OPTIONS}
-        selected={selected}
-        answer={step === 1 ? task.action : task.sign}
-        variant={step === 1 ? "action-words" : "large-signs"}
-        onAnswer={step === 1 ? handleStep1 : handleStep2}
-      />
+      <div className={`operation-find-sign__step1-badge${step === 2 && step1Label ? "" : " is-hidden"}`}>
+        {step1Label ?? "Убрали"} <span className="operation-find-sign__step1-check">✓</span>
+      </div>
+      <div className="operation-link-drill__question operation-find-sign__question">
+        {step === 1 ? "Что мы сделали?" : "Какой знак поставить?"}
+      </div>
+      <div className={`operation-find-sign__choices${writing ? " is-faded" : ""}`}>
+        <ChoiceGrid
+          key={step}
+          options={step === 1 ? FIND_SIGN_ACTIONS : FIND_SIGN_SIGNS}
+          selected={selected}
+          answer={step === 1 ? task.action : task.sign}
+          variant={step === 1 ? "action-words" : "large-signs"}
+          onAnswer={step === 1 ? handleStep1 : handleStep2}
+        />
+      </div>
       {task.showHelper && !helperOpen && (
         <button
           type="button"
