@@ -841,43 +841,107 @@ function TimerBar({ seconds, onExpire }) {
   );
 }
 
-function ResultTask({ task, onCorrect, onIncorrect }) {
-  const [selected, setSelected] = useState(null);
+// «Сколько стало?» (reworked 2026-11-28, owner): the bold question on top, the example
+// large with spaces. A wrong answer is NOT revealed any more (the right option used to
+// light up, and the same example came back — the child just copied it): the wrong
+// option shakes red and goes pale, the counting stick opens right on the screen under
+// the example, and the child answers again from what is left. The options are real
+// mistakes in ascending order (`makeResultOptions`). A right answer is green — the
+// subtraction result used to turn red. The keypad variant checks on «Готово».
+function ResultTask({ task, onCorrect, onIncorrect, onStreakReset }) {
+  const [solved, setSolved] = useState(false);
+  const [tried, setTried] = useState([]);
+  const [shakeValue, setShakeValue] = useState(null);
   const [helperOpen, setHelperOpen] = useState(false);
-  const answered = selected != null;
+  const [typedWrong, setTypedWrong] = useState(false);
+  const shakeTimer = useRef(null);
+  useEffect(() => () => clearTimeout(shakeTimer.current), []);
 
   const handleAnswer = useCallback((value) => {
-    if (answered) return;
-    setSelected(value);
+    if (solved) return;
     if (value === task.result) {
+      setSolved(true);
       onCorrect(task.conceptId, task.cardId);
-    } else {
-      onIncorrect(task.conceptId, task.cardId);
+      return;
     }
-  }, [answered, task, onCorrect, onIncorrect]);
-  const entry = useDigitAnswer({ maxNumber: task.maxNumber, answered, onSubmit: handleAnswer });
+    if (value === -1) { onIncorrect(task.conceptId, task.cardId); return; } // the timer ran out
+    // A mistake costs the star series but keeps the task (no remount, the stick stays open).
+    (onStreakReset ?? onIncorrect)(task.conceptId, task.cardId);
+    setTried((prev) => [...prev, value]);
+    setShakeValue(value);
+    setTypedWrong(true);
+    setHelperOpen(true);
+    clearTimeout(shakeTimer.current);
+    shakeTimer.current = setTimeout(() => { setShakeValue(null); setTypedWrong(false); }, 450);
+  }, [solved, task, onCorrect, onIncorrect, onStreakReset]);
   const isPad = task.inputMode === "pad";
+  const [digits, setDigits] = useState([]);
+  const maxDigits = Math.max(1, String(task.maxNumber).length);
+  useEffect(() => { if (typedWrong) setDigits([]); }, [typedWrong]);
 
   return (
-    <div className="operation-stage operation-stage--result">
-      <OperationExpression
-        task={task}
-        missingResult={selected !== task.result}
-        answered={selected === task.result}
-        typedResult={isPad ? (answered && selected >= 0 ? String(selected) : entry.typed) : undefined}
-        typedWrong={isPad && answered && selected !== task.result}
-      />
-      {isPad ? entry.pad : (
-        <NumberChoices
-          task={task}
-          selected={selected}
-          onAnswer={handleAnswer}
-        />
+    <div className={`operation-stage operation-stage--result${solved ? " is-solved" : ""}`}>
+      <div className="operation-result__title">Сколько стало?</div>
+      <div className={`operation-expression operation-result__expression${solved ? " is-solved" : ""}${typedWrong && isPad ? " is-wrong" : ""}`} aria-label="пример">
+        <span className="operation-expression__number">{task.start}</span>
+        <span className={`operation-expression__sign operation-expression__sign--${task.operation}`}>{showSign(task.sign)}</span>
+        <span className="operation-expression__number">{task.delta}</span>
+        <span className="operation-expression__equals">=</span>
+        <span className={`operation-expression__number operation-result__answer${solved ? " is-solved" : digits.length ? " is-typed" : ""}`}>
+          {solved ? task.result : (isPad && digits.length ? digits.join("") : "?")}
+        </span>
+      </div>
+      {helperOpen && !solved && (
+        <div className="operation-result__helper">
+          <HelperPanel inline maxNumber={task.maxNumber} showMoveHint={task.showMoveHint} />
+        </div>
       )}
-      {task.timer > 0 && !answered && (
+      {isPad ? (
+        <div className="operation-result-keypad operation-result__pad">
+          <AudioAnswerPad
+            digits={digits}
+            disabled={solved}
+            maxDigits={maxDigits}
+            hideCheck
+            onDigit={(d) => { if (!solved && digits.length < maxDigits) setDigits((prev) => [...prev, d]); }}
+            onBackspace={() => { if (!solved) setDigits((prev) => prev.slice(0, -1)); }}
+          />
+          <button
+            type="button"
+            className="operation-result__done"
+            disabled={solved || !digits.length}
+            onClick={() => handleAnswer(Number(digits.join("")))}
+          >
+            Готово
+          </button>
+        </div>
+      ) : (
+        <div className="operation-number-grid">
+          {task.resultOptions.map((value) => {
+            const isTried = tried.includes(value);
+            return (
+              <button
+                key={value}
+                type="button"
+                className={[
+                  "operation-number-choice",
+                  solved && value === task.result ? "operation-number-choice--correct" : "",
+                  shakeValue === value ? "operation-number-choice--wrong" : "",
+                  isTried && shakeValue !== value ? "operation-number-choice--tried" : "",
+                ].filter(Boolean).join(" ")}
+                disabled={solved || isTried}
+                onClick={() => handleAnswer(value)}
+              >
+                {value}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {task.timer > 0 && !solved && (
         <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
       )}
-      {task.showHelper && (
+      {task.showHelper && !helperOpen && !solved && (
         <button
           type="button"
           className="helper-toggle-btn"
@@ -886,9 +950,6 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
         >
           🧮
         </button>
-      )}
-      {helperOpen && (
-        <HelperPanel maxNumber={task.maxNumber} showMoveHint={task.showMoveHint} onClose={() => setHelperOpen(false)} />
       )}
     </div>
   );
@@ -1223,7 +1284,7 @@ function MissingTermTask({ task, onCorrect, onIncorrect }) {
 
 const AUDIO_MAX_DIGITS = 3;
 
-function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck, maxDigits = AUDIO_MAX_DIGITS }) {
+function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck, maxDigits = AUDIO_MAX_DIGITS, hideCheck = false }) {
   return (
     <div className="operation-audio-keypad">
       <div className="operation-audio-keypad__grid">
@@ -1249,7 +1310,7 @@ function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck, maxDi
         >
           ⌫
         </button>
-        <button
+        {!hideCheck && <button
           type="button"
           className="operation-audio-key operation-audio-key--check"
           disabled={disabled || digits.length === 0}
@@ -1257,7 +1318,7 @@ function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck, maxDi
           aria-label="Проверить"
         >
           ✓
-        </button>
+        </button>}
       </div>
     </div>
   );
@@ -1361,7 +1422,7 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
-function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student, accountKv }) {
+function OperationTask({ task, onCorrect, onIncorrect, onMistake, onStreakReset, streakCount, playFeedback, soundEnabled, student, accountKv }) {
   const type = task.type;
 
   if (type === "operation_worksheet") {
@@ -1388,7 +1449,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
     return <FindSignTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
   if (type === "operation_result") {
-    return <ResultTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+    return <ResultTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onStreakReset={onStreakReset} />;
   }
   if (type === "operation_audio") {
     return <AudioOperationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
@@ -1410,5 +1471,5 @@ export default function AdditionSubtractionRenderer({ task, sessionParams, onCor
   if (task.type === "fingers_count") {
     return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={sessionParams?.strictStars ? onStreakReset : undefined} onFlashIncorrect={onFlashIncorrect} playFeedback={playFeedback} />;
   }
-  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} accountKv={accountKv} />;
+  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} onStreakReset={onStreakReset} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} accountKv={accountKv} />;
 }

@@ -44,6 +44,21 @@ function makeNumberOptions(answer, maxNumber, optionCount = 4) {
   return shuffle([...values]);
 }
 
+// «Сколько стало?» (owner, 2026-11-28): the wrong options are the child's real mistakes,
+// not random neighbours — the other action (4 − 3 → 7, 4 + 3 → 1), the first number left
+// as it is, then ±1 — and all of them in ascending order (eyes go along a number line).
+export function makeResultOptions(start, delta, result, operation, maxNumber, optionCount = 4) {
+  const max = Math.max(1, maxNumber);
+  const other = operation === "add" ? start - delta : start + delta;
+  const values = new Set([result]);
+  for (const v of [other, start, result + 1, result - 1, result + 2, result - 2, result + 3, result - 3]) {
+    if (values.size >= optionCount) break;
+    if (Number.isInteger(v) && v >= 0 && v <= max) values.add(v);
+  }
+  while (values.size < Math.min(optionCount, max + 1)) values.add(randomInt(0, max));
+  return [...values].sort((a, b) => a - b);
+}
+
 function resolveAssociationDirection(modeType, params, taskIndex) {
   if (modeType !== "operation_action_from_sign") return undefined;
   const direction = params.direction ?? "alternating";
@@ -163,7 +178,9 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
       maxNumber,
       railSize,
       associationDirection,
-      resultOptions: makeNumberOptions(result, maxNumber),
+      resultOptions: modeType === "operation_result"
+        ? makeResultOptions(start, delta, result, operation, maxNumber)
+        : makeNumberOptions(result, maxNumber),
       ...extraParams,
     };
   }
@@ -186,7 +203,9 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
     maxNumber,
     railSize,
     associationDirection,
-    resultOptions: makeNumberOptions(result, maxNumber),
+    resultOptions: modeType === "operation_result"
+      ? makeResultOptions(start, delta, result, operation, maxNumber)
+      : makeNumberOptions(result, maxNumber),
     ...extraParams,
   };
 }

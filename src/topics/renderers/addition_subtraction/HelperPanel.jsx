@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { buildStickSlots, getStickBeadColor, STICK_DRAG_THRESHOLD } from "./stickModel";
 
-export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onClose }) {
+// `inline`: the stick right on the task screen, not a dimmed sheet over it — «Сколько
+// стало?» opens it after a mistake, so the example stays in sight (owner, 2026-11-28).
+export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onClose, inline = false }) {
   const helperTask = { railSize: maxNumber, maxNumber, operation: "add", start: 0, delta: maxNumber, result: maxNumber };
   const [workCount, setWorkCount] = useState(0);
   const [lastHint, setLastHint] = useState(null); // { sign, count, key }
@@ -44,15 +46,17 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
   }
 
   return (
-    <div className="helper-panel" role="dialog" aria-label="Счётный помощник">
-      <button
-        type="button"
-        className="helper-panel__close"
-        onClick={onClose}
-        aria-label="Закрыть помощник"
-      >
-        ✕
-      </button>
+    <div className={`helper-panel${inline ? " helper-panel--inline" : ""}`} role={inline ? "group" : "dialog"} aria-label="Счётный помощник">
+      {!inline && (
+        <button
+          type="button"
+          className="helper-panel__close"
+          onClick={onClose}
+          aria-label="Закрыть помощник"
+        >
+          ✕
+        </button>
+      )}
       <div className="helper-panel__sheet">
         <div className="operation-stick">
           <div
@@ -92,7 +96,7 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
             </div>
           </div>
         </div>
-        <div className="helper-panel__hint-area">
+        {(showMoveHint || !inline) && <div className="helper-panel__hint-area">
           {showMoveHint && lastHint && (
             <span
               key={lastHint.key}
@@ -101,7 +105,7 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
               {lastHint.sign === "-" ? "−" : lastHint.sign}{lastHint.count}
             </span>
           )}
-        </div>
+        </div>}
       </div>
     </div>
   );

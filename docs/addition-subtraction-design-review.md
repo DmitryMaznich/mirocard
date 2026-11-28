@@ -52,6 +52,21 @@ the column's own cells stay as they are for now.
   `AudioAnswerPad` of the other modes is unchanged.
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
+## 2026-11-28: «8. Сколько стало?» (operation_result) — no answer reveal, the stick after a mistake
+
+Owner: after a mistake show the counting stick at once; code and ship without a mockup. `ResultTask` (`index.jsx`),
+«Mode 6: Result» block of `src/styles.css`, `makeResultOptions` (`engine.js`), `HelperPanel inline`.
+- A wrong answer is not revealed any more (the right option lit up green and the same example came back — the
+  child just copied it). The wrong option shakes red, then goes pale and out of play; the mistake goes through
+  `onStreakReset` (stars, stats) without a remount; the counting stick opens right on the screen under the example
+  (`HelperPanel inline`: no dimmed sheet, no ✕, no empty hint row unless «Подсказка последнего хода» is on).
+- Options = the answer, the other action (4 − 3 → 7), the first number, ±1 … — in ascending order. Only this mode;
+  the others keep `makeNumberOptions`.
+- Right answer green, the whole example lights up (the subtraction result used to turn red).
+- Bold question «Сколько стало?» on top; the example large with spaces, numbers in ink.
+- Keypad variant: the topic keypad without its ✓ (`AudioAnswerPad hideCheck`) + a «Готово» button.
+- The 🧮 button (if «Кнопка счётного помощника» is on) still opens the stick before any mistake, now inline too.
+
 ## 2026-11-28: minus «−», not hyphen «-», everywhere in the topic
 
 Owner. Tasks keep `sign: "+" / "-"` (data, comparisons, stats); every place that SHOWS a sign maps it through

@@ -16783,13 +16783,71 @@ button.operation-dot {
 /* ─── Mode 6: Result ────────────────────────────────────────────────────── */
 .operation-stage--result {
   position: relative;
-  justify-content: center;
-  gap: 28px;
+  justify-content: flex-start;
+  gap: 18px;
+  padding-top: 14px;
 }
 
-.operation-stage--result .operation-expression {
-  --operation-expression-font-size: min(clamp(2.8rem, 16vw, 8rem), calc((100dvw - 36px) / 5.8));
+/* 2026-11-28: the bold question on top, the example large with spaces (as «Найди знак») */
+.operation-result__title {
+  font-weight: 800;
+  font-size: clamp(22px, 6vw, 32px);
+  color: #1a2540;
+  text-align: center;
 }
+.operation-stage--result .operation-result__expression {
+  --operation-expression-font-size: min(clamp(3.2rem, 18vw, 8rem), calc((100dvw - 72px) / 4.6));
+  gap: clamp(8px, 2.6vw, 22px);
+  padding: clamp(10px, 2vw, 20px) clamp(16px, 3.4vw, 30px);
+  transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.operation-result__expression .operation-expression__number { color: #1a2540; }
+.operation-result__answer { min-width: 0.8em; text-align: center; }
+.operation-result__expression .operation-result__answer { color: #a9b4b2; }
+.operation-result__expression .operation-result__answer.is-typed { color: #1a2540; }
+/* a right answer is green — for subtraction it used to turn red, the colour of a mistake */
+.operation-result__expression.is-solved { border-color: #86efac; background: #f0fdf4; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.28); }
+.operation-result__expression .operation-result__answer.is-solved { color: #16a34a; }
+.operation-result__expression.is-wrong { animation: operation-audio-shake 0.4s ease; }
+.operation-result__expression.is-wrong .operation-result__answer { color: #ef4444; }
+
+/* a tried wrong option: pale and out of play, the child picks from the rest */
+.operation-number-choice--tried { opacity: 0.35; }
+
+/* the counting stick right on the screen after a mistake (not the dimmed sheet) */
+.operation-result__helper { width: 100%; }
+.helper-panel--inline {
+  position: static;
+  inset: auto;
+  background: none;
+  z-index: auto;
+  padding-bottom: 0;
+}
+.helper-panel--inline .helper-panel__sheet {
+  border-radius: 20px;
+  padding: 10px 0;
+  box-shadow: 0 2px 10px rgba(26, 37, 64, 0.1);
+  animation: operation-result-helper-in 0.3s ease;
+}
+@keyframes operation-result-helper-in { from { opacity: 0; transform: translateY(-8px); } }
+
+.operation-result__pad { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.operation-result__done {
+  min-width: min(100%, 280px);
+  min-height: 54px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 16px;
+  background: #4a9b8f;
+  box-shadow: 0 4px 0 #2a6b60;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(18px, 4.6vw, 24px);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.operation-result__done:active { transform: translateY(3px); box-shadow: 0 1px 0 #2a6b60; }
+.operation-result__done:disabled { opacity: 0.45; box-shadow: none; }
 
 .operation-timer {
   width: 100%;
@@ -16808,7 +16866,7 @@ button.operation-dot {
 
 @media (max-width: 520px) {
   .operation-stage--result {
-    gap: 18px;
+    gap: 14px;
   }
 }
 

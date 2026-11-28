@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { dictationPlan, normalizeDictationNumbers, resolveDictationParams } from "./dictation.js";
-import { generateTasks } from "./engine";
+import { generateTasks, makeResultOptions } from "./engine";
 
 const CARDS = [
   {
@@ -496,3 +496,19 @@ describe("operation_audio", () => {
     expect(normalizeDictationNumbers(nums(one("none", "any"), one("any", "any")), "add").bottom.tens).toBe("any");
   });
 });
+
+describe("operation_result options (makeResultOptions)", () => {
+  it("offers the real mistakes — the other action and the first number — in ascending order", () => {
+    expect(makeResultOptions(4, 3, 1, "subtract", 10)).toEqual([1, 2, 4, 7]);
+    expect(makeResultOptions(3, 2, 5, "add", 10)).toEqual([1, 3, 5, 6]);
+  });
+  it("stays in range and always holds the answer", () => {
+    for (let t = 0; t < 50; t++) {
+      const [task] = generateTasks("operation_result", CARDS, 1, { maxNumber: 5 });
+      expect(task.resultOptions).toContain(task.result);
+      expect([...task.resultOptions].sort((a, b) => a - b)).toEqual(task.resultOptions);
+      for (const v of task.resultOptions) { expect(v).toBeGreaterThanOrEqual(0); expect(v).toBeLessThanOrEqual(5); }
+    }
+  });
+});
+
