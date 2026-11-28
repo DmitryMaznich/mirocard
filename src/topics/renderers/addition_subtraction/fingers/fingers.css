@@ -3,6 +3,7 @@
    the feedback-badge overhang. Stretch the wrap into that gap and repeat the
    screen's plain fill so the task reaches the top of the screen. */
 .session-renderer-wrap:has(> .fng-show-screen),
+.session-renderer-wrap:has(> .fng-show-check),
 .session-renderer-wrap:has(> .fng-add-screen) {
   margin-top: -58px;
   padding-top: 58px;
@@ -11,6 +12,7 @@
 
 @media (max-width: 560px) {
   .session-renderer-wrap:has(> .fng-show-screen),
+  .session-renderer-wrap:has(> .fng-show-check),
   .session-renderer-wrap:has(> .fng-add-screen) {
     margin-top: -86px;
     padding-top: 86px;
@@ -89,20 +91,96 @@
 }
 
 
-/* «Цифра → пальцы»: the model (canonical pose) after the second wrong check,
-   in a strip under the hands whose height is kept so nothing jumps. */
-.fng-show-model {
-  flex: 0 0 22%;
+/* «Цифра → пальцы»: instruction, number (+ model), hands, «Готово». */
+.fng-show-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f0f6ff;
+  padding: 10px 10px calc(12px + var(--app-safe-bottom, 0px));
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.fng-show-title {
+  flex-shrink: 0;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: clamp(20px, 5.4vw, 30px);
+  color: #1a2540;
+  text-align: center;
+  line-height: 1.2;
+}
+.fng-show-top {
+  flex-shrink: 0;
+  height: clamp(90px, 18vh, 190px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 4px 0 6px;
+}
+/* Print digits (Nunito), not the handwriting Primo: here the child reads the number. */
+.fng-show-print-number {
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: clamp(80px, min(32vw, 17vh), 170px);
+  line-height: 1;
+  color: #1a2540;
+  transition: color 0.2s ease;
+}
+.fng-show-print-number.is-done { color: #16a34a; }
+/* The model (canonical pose) beside the number after the 2nd wrong check. */
+.fng-show-model-hands {
+  display: flex;
+  gap: 2px;
+  height: 100%;
+  aspect-ratio: 1.6;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(26, 37, 64, 0.12);
+  animation: fng-model-in 0.3s ease;
+}
+@keyframes fng-model-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+
+/* «Готово» → «Дальше»: the app's primary button (teal, 3D bottom shadow). */
+.fng-show-done-row {
+  flex-shrink: 0;
   width: 100%;
   display: flex;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  padding-top: 10px;
 }
-.fng-show-model.is-visible { opacity: 1; }
-.fng-show-check { position: relative; }
+.fng-done-btn {
+  min-width: min(100%, 280px);
+  min-height: 54px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 16px;
+  background: #4a9b8f;
+  box-shadow: 0 4px 0 #2a6b60;
+  color: #fff;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: clamp(18px, 4.6vw, 24px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease;
+}
+.fng-done-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #2a6b60; }
+.fng-done-btn.is-next { background: #22c55e; box-shadow: 0 4px 0 #15803d; }
+.fng-done-btn.is-next:active { box-shadow: 0 1px 0 #15803d; }
+.fng-done-btn.is-wrong { background: #ef4444; box-shadow: 0 4px 0 #b91c1c; animation: fng-answer-shake 0.4s ease; }
 
-/* «Цифра → пальцы»: two hands, a row of five finger dots under each wrist. */
+/* Two hands, each with its ▼ / ▲ pair under the wrist («Цифра → пальцы», «Считаем на пальцах»). */
 .fng-tap-hands {
   flex: 1;
   min-height: 0;
@@ -117,8 +195,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* hand and buttons stay together, wrists level in both hands */
-  justify-content: flex-end;
+  /* hand and buttons stay together, centred in the free height; both hands are the
+     same size, so the wrists stay level */
+  justify-content: center;
   /* The ▼ / ▲ buttons size themselves from this box: the drawn hand is limited by
      the height on a tablet and by the width on a phone, so the buttons take the
      smaller of the two — about a quarter of the hand's width either way. */
@@ -153,32 +232,6 @@
 .fng-hand-btn--up { background: #22c55e; }
 .fng-hand-btn--down { background: #ef4444; }
 .fng-hand-btn:disabled { opacity: 0.22; box-shadow: none; pointer-events: none; }
-
-/* Landscape (tablet): the hands sit far apart, so the model goes in the gap
-   between them instead of taking height from them. */
-@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
-  .fng-show-check .fng-show-model {
-    position: absolute;
-    left: 50%;
-    bottom: calc(14px + var(--app-safe-bottom, 0px));
-    transform: translateX(-50%);
-    width: 22%;
-    height: 30%;
-    pointer-events: none;
-  }
-  .fng-show-check .fng-show-model-hands { width: 100%; }
-}
-.fng-show-model-hands {
-  display: flex;
-  gap: 4px;
-  height: 100%;
-  width: min(60%, 320px);
-  padding: 4px 10px;
-  box-sizing: border-box;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(26, 37, 64, 0.12);
-}
 
 /* «Пальцы → цифра»: the typed answer in the number's place. */
 .fng-show-number-zone--answer {

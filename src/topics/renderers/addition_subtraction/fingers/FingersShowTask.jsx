@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { handPoseImage } from "./fingerTasks.js";
-import { ChecklistItem, CounterHand, FingersKeypad } from "./FingersCountTask.jsx";
+import { CounterHand, FingersKeypad } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
@@ -64,7 +64,12 @@ function LearnTask({ task, hint, onCorrect, onPrevious }) {
 // hands is the adult's business.
 const MODEL_AFTER_MISTAKES = 2;
 
-function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+// Layout (owner, 2026-11-28): the bold instruction «Покажи на пальцах» on top, the number
+// in the app's print font (Nunito) — the form the child reads in books and on screens —,
+// the hands, and a «Готово» button at the bottom. A right answer does not move on by
+// itself: the number turns green, the button becomes «Дальше», and that tap moves on
+// (the answer is counted then). The model appears beside the number.
+function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedback }) {
   const [left, setLeft] = useState(0);
   const [right, setRight] = useState(0);
   const [mistakes, setMistakes] = useState(0);
@@ -74,15 +79,17 @@ function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
     setLeft(0); setRight(0); setMistakes(0); setShake(false); setDone(false);
   }, [task.cardId, task.n]);
 
-  function confirm() {
-    if (done || shake) return;
+  function check() {
+    if (shake) return;
+    if (done) { onCorrect(task.conceptId, task.cardId); return; }
     if (left + right === task.n) {
       setDone(true);
-      setTimeout(() => onCorrect(task.conceptId, task.cardId), 700);
+      playFeedback?.("correct");
       return;
     }
     setShake(true);
     setMistakes(m => m + 1);
+    playFeedback?.("incorrect");
     onMistake?.(task.conceptId, task.cardId);
     onFlashIncorrect?.();
     setTimeout(() => { setShake(false); setLeft(0); setRight(0); }, 500);
@@ -92,23 +99,24 @@ function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const model = getFingerConfig(task.n);
   const locked = done || shake;
   return (
-    <div className="fng-add-screen fng-show-check">
-      <div className="fng-add-top">
-        <div className={`fng-count-expr${done ? " fng-count-answer--correct" : ""}`}>{task.n}</div>
-      </div>
-      <div className="fng-checklist">
-        <ChecklistItem
-          text={`Покажи ${task.n}`}
-          state={done ? "done" : shake ? "wrong" : "active"}
-          onTap={confirm}
-        />
+    <div className="fng-show-check">
+      <div className="fng-show-title">Покажи на пальцах</div>
+      <div className="fng-show-top">
+        <div className={`fng-show-print-number${done ? " is-done" : ""}`}>{task.n}</div>
+        {showModel && <ChildHands left={model.left} right={model.right} className="fng-show-model-hands" />}
       </div>
       <div className={`fng-tap-hands${shake ? " is-shaking" : ""}`}>
         <CounterHand count={left} side="right" disabled={locked} onRaise={() => setLeft(c => Math.min(5, c + 1))} onLower={() => setLeft(c => Math.max(0, c - 1))} />
         <CounterHand count={right} side="left" disabled={locked} onRaise={() => setRight(c => Math.min(5, c + 1))} onLower={() => setRight(c => Math.max(0, c - 1))} />
       </div>
-      <div className={`fng-show-model${showModel ? " is-visible" : ""}`} aria-hidden={!showModel}>
-        {showModel && <ChildHands left={model.left} right={model.right} className="fng-show-model-hands" />}
+      <div className="fng-show-done-row">
+        <button
+          type="button"
+          className={`fng-done-btn${done ? " is-next" : ""}${shake ? " is-wrong" : ""}`}
+          onClick={check}
+        >
+          {done ? <>Дальше <ForwardArrowIcon size={18} /></> : "Готово"}
+        </button>
       </div>
     </div>
   );
@@ -116,7 +124,7 @@ function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
 
 // «Пальцы → цифра»: hands in one of the splits of n (task.left / task.right),
 // the child types the number. A wrong number shakes and clears; the task stays.
-function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedback }) {
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
   const [done, setDone] = useState(false);
@@ -130,10 +138,12 @@ function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
     if (next.join("") === answer) {
       setInput(next);
       setDone(true);
+      playFeedback?.("correct");
       setTimeout(() => onCorrect(task.conceptId, task.cardId), 700);
     } else {
       setInput(next);
       setShake(true);
+      playFeedback?.("incorrect");
       setTimeout(() => { setShake(false); setInput([]); }, 500);
       onMistake?.(task.conceptId, task.cardId);
       onFlashIncorrect?.();
@@ -160,13 +170,13 @@ function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   );
 }
 
-export default function FingersShowTask({ task, sessionParams, onCorrect, onMistake, onFlashIncorrect, onPrevious }) {
+export default function FingersShowTask({ task, sessionParams, onCorrect, onMistake, onFlashIncorrect, onPrevious, playFeedback }) {
   const variant = task.variant ?? "learn";
   if (variant === "show") {
-    return <ShowCheckTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} />;
+    return <ShowCheckTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} playFeedback={playFeedback} />;
   }
   if (variant === "recognize") {
-    return <RecognizeTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} />;
+    return <RecognizeTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} playFeedback={playFeedback} />;
   }
   return <LearnTask task={task} hint={sessionParams?.hint !== false} onCorrect={onCorrect} onPrevious={onPrevious} />;
 }

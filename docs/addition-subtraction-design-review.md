@@ -74,6 +74,13 @@ Owner's decisions (step 1 of 2):
     middle + ring …; gluing fingers of the open hand onto the fist left seams the owner rejected). Dots ON the
     fingers were tried by the owner earlier — even less clear.
   Numbers in shuffled rounds of 0–10, never the same twice in a row. Stats per `fshow_<n>`.
+- «Цифра → пальцы» screen (owner, 2026-11-28): bold instruction «Покажи на пальцах» on top; the number in
+  Nunito 900 (print), not Primo — here the child reads a number, and print is the form of books and screens;
+  the model appears beside the number; at the bottom the app's primary button «Готово» (teal, 3D shadow)
+  instead of the checklist row. A right answer does not move on by itself: the number turns green, the button
+  becomes «Дальше» (green), and that tap calls `onCorrect` — the star is counted then. The renderer plays the
+  sounds itself (`fingers_show` is in `OWNS_FEEDBACK_TYPES` in `SessionScreen.jsx`): the chime on «Готово»,
+  the error sound on a wrong check; «Пальцы → цифра» plays its own too; «Обучение» is silent now.
 - «Считаем на пальцах» (`fingers_count`) got the same ▼ ▲ under the wrist (`CounterHand`, exported from
   `FingersCountTask.jsx`; the old on-palm `HandArrows` and the `.fng-sub-hand*` / `.fng-arrow` CSS are gone).
   Known, not fixed (was so before): on a landscape tablet (~1024×700 session area) the expression, the checklist

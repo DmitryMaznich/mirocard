@@ -154,6 +154,9 @@ export default function SessionScreen() {
     "pl_screen_write",
     // «Почини букву»: its own soft click when a part snaps in, no error sound (docs/print-letters-fix-letter.md)
     "pl_fix_letter",
+    // «Покажи на пальцах»: «Цифра → пальцы» rings on «Готово», but the answer is counted on
+    // the next tap («Дальше») — the renderer plays both sounds itself; «Обучение» is silent.
+    "fingers_show",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 
