@@ -19,7 +19,8 @@ const SRC = path.join(ROOT, "tools", "addition_subtraction", "finger-combos");
 const OUT = path.join(ROOT, "public", "hands");
 
 // Approved by the owner on 2026-11-27 (contact sheet of 3–4 drafts per pose).
-export const APPROVED = { t: "t_1", p: "p_4", ti: "ti_2", tp: "tp_3", ip: "ip_1", tim: "tim_1", mrp: "mrp_3", timr: "timr_1" };
+export const APPROVED = { t: "t_1", p: "p_4", ti: "ti_2", tp: "tp_3", ip: "ip_1", tim: "tim_1", timr: "timr_1" };
+// mrp_3 (middle + ring + pinky) was dropped on 2026-11-28: it has four fingers up.
 
 const W = 256, H = 320, WRIST_W = 87, WRIST_CX = 144;
 

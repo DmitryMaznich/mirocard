@@ -82,6 +82,16 @@ Owner's decisions (step 1 of 2):
   becomes «Дальше» (green), and that tap calls `onCorrect` — the star is counted then. The renderer plays the
   sounds itself (`fingers_show` is in `OWNS_FEEDBACK_TYPES` in `SessionScreen.jsx`): the chime on «Готово»,
   the error sound on a wrong check; «Пальцы → цифра» plays its own too; «Обучение» is silent now.
+- «Пальцы → цифра» screen (owner, 2026-11-28, same layout as «Цифра → пальцы»): bold question «Сколько
+  пальцев?»; the topic's answer field (white, grey 4 px border, Nunito 900 — no bare «?», an empty field shows a
+  blinking caret); the hands; the topic's white keypad in print digits (1–5 / 6–0, ⌫ on the right, max two
+  digits); «Готово» → «Дальше». Checked only on «Готово» — the old automatic check after the last digit gave away
+  that 10 has two digits. Wrong: shake, clear, star series reset, the task stays. No hint yet.
+- **Drawing bug (2026-11-28, seen by the owner: 9 fingers on the screen, answer 8):** the approved `combo_mrp`
+  («middle + ring + pinky», draft mrp_3) has FOUR fingers up. Pose removed (`HAND_POSES[3]` = imr, tim), file
+  deleted, all 13 remaining drawings re-counted by eye. An automatic count by the outline does not work: folded
+  fingers of the Gemini drawings stand almost as high as a raised pinky. Lesson: count every finger of every
+  draft before approving, and show the owner the drawings large, not in a dense contact sheet.
 - «Считаем на пальцах» (`fingers_count`) got the same ▼ ▲ under the wrist (`CounterHand`, exported from
   `FingersCountTask.jsx`; the old on-palm `HandArrows` and the `.fng-sub-hand*` / `.fng-arrow` CSS are gone).
   Known, not fixed (was so before): on a landscape tablet (~1024×700 session area) the expression, the checklist

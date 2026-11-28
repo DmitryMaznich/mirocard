@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { handPoseImage } from "./fingerTasks.js";
-import { CounterHand, FingersKeypad } from "./FingersCountTask.jsx";
+import { CounterHand } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
@@ -139,49 +139,71 @@ function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedb
   );
 }
 
-// «Пальцы → цифра»: hands in one of the splits of n (task.left / task.right),
-// the child types the number. A wrong number shakes and clears; the task stays.
+// «Пальцы → цифра» (owner, 2026-11-28 — same layout as «Цифра → пальцы»): the bold
+// question «Сколько пальцев?», the answer field, the two hands (a split of n, the fingers
+// of each hand drawn at random from the checked drawings), the topic's keypad in print
+// digits, «Готово» at the bottom. Checked on «Готово» only (an automatic check after the
+// last digit gave away that 10 has two digits). Wrong: the field shakes and clears,
+// the star series resets, the task stays. Right: the field turns green, «Готово» becomes
+// «Дальше», and that tap moves on (the answer is counted then).
+const RECOGNIZE_MAX_DIGITS = 2;
+
+function PrintKeypad({ onDigit, onBackspace, disabled }) {
+  return (
+    <div className="fng-keypad">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
+        <button key={d} type="button" className="fng-key" disabled={disabled} onClick={() => onDigit(d)}>{d}</button>
+      ))}
+      <button type="button" className="fng-key fng-key--erase" disabled={disabled} onClick={onBackspace} aria-label="Стереть">⌫</button>
+    </div>
+  );
+}
+
 function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedback }) {
-  const [input, setInput] = useState([]);
+  const [input, setInput] = useState("");
   const [shake, setShake] = useState(false);
   const [done, setDone] = useState(false);
-  useEffect(() => { setInput([]); setShake(false); setDone(false); }, [task.cardId, task.n]);
-  const answer = String(task.n);
+  useEffect(() => { setInput(""); setShake(false); setDone(false); }, [task.cardId, task.n]);
 
-  function handleDigit(d) {
+  function addDigit(d) {
     if (done || shake) return;
-    const next = [...input, String(d)];
-    if (next.length < answer.length) { setInput(next); return; }
-    if (next.join("") === answer) {
-      setInput(next);
+    setInput(v => (v.length >= RECOGNIZE_MAX_DIGITS ? v : v === "0" ? String(d) : v + d));
+  }
+  function erase() { if (!done && !shake) setInput(v => v.slice(0, -1)); }
+
+  function check() {
+    if (shake) return;
+    if (done) { onCorrect(task.conceptId, task.cardId); return; }
+    if (!input) return;
+    if (Number(input) === task.n) {
       setDone(true);
       playFeedback?.("correct");
-      setTimeout(() => onCorrect(task.conceptId, task.cardId), 700);
-    } else {
-      setInput(next);
-      setShake(true);
-      playFeedback?.("incorrect");
-      setTimeout(() => { setShake(false); setInput([]); }, 500);
-      onMistake?.(task.conceptId, task.cardId);
-      onFlashIncorrect?.();
+      return;
     }
+    setShake(true);
+    playFeedback?.("incorrect");
+    onMistake?.(task.conceptId, task.cardId);
+    onFlashIncorrect?.();
+    setTimeout(() => { setShake(false); setInput(""); }, 500);
   }
 
-  function handleDelete() { if (!shake && !done) setInput(p => p.slice(0, -1)); }
-
-  const shown = input.length ? input.join("") : "?";
   return (
-    <div className="fng-show-screen">
-      <div className="fng-show-number-zone fng-show-number-zone--answer">
-        <div className={`fng-show-number fng-show-answer${done ? " fng-count-answer--correct" : shake ? " fng-count-answer--shake" : input.length ? " fng-count-answer" : " fng-show-answer--empty"}`}>
-          {shown}
-        </div>
+    <div className="fng-show-check fng-recognize">
+      <div className="fng-show-title">Сколько пальцев?</div>
+      <div className={`fng-answer-box${done ? " is-done" : ""}${shake ? " is-wrong" : ""}${input ? "" : " is-empty"}`}>
+        {input}
       </div>
-      {task.leftPose !== undefined
-        ? <PoseHands leftPose={task.leftPose} rightPose={task.rightPose} />
-        : <ChildHands left={task.left ?? 0} right={task.right ?? 0} />}
-      <div className="fng-add-kbd-zone">
-        <FingersKeypad onDigit={handleDigit} onDelete={handleDelete} active={!done} />
+      <PoseHands leftPose={task.leftPose ?? ""} rightPose={task.rightPose ?? ""} />
+      <PrintKeypad onDigit={addDigit} onBackspace={erase} disabled={done || shake} />
+      <div className="fng-show-done-row">
+        <button
+          type="button"
+          className={`fng-done-btn${done ? " is-next" : ""}${shake ? " is-wrong" : ""}`}
+          disabled={!done && !input}
+          onClick={check}
+        >
+          {done ? <>Дальше <ForwardArrowIcon size={18} /></> : "Готово"}
+        </button>
       </div>
     </div>
   );

@@ -67,6 +67,9 @@ scripts/*.svg
 !tools/comparison/media/scenes/*.jpg
 !tools/comparison/media/enough/*.webp
 !tools/comparison/media-src/enough/*.jpg
+# «Покажи на пальцах»: every hand drawing (app copies + Gemini drafts), see its README
+!docs/mockups/addition-subtraction/hands/app/*.webp
+!docs/mockups/addition-subtraction/hands/drafts/*.webp
 *.docx
 *.pdf
 # Free landing materials are served by the backend, so they must ship with it.

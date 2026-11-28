@@ -43,7 +43,9 @@ export const HAND_POSES = {
   0: [""],
   1: ["i", "t", "p"],
   2: ["im", "ti", "tp", "ip"],
-  3: ["imr", "tim", "mrp"],
+  // «mrp» (middle + ring + pinky) was dropped on 2026-11-28: the approved drawing had four
+  // fingers up — a task «3 + 5» showed 9. Every drawing here was re-counted by eye that day.
+  3: ["imr", "tim"],
   4: ["imrp", "timr"],
   5: ["timrp"],
 };
