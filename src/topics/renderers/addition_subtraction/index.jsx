@@ -846,15 +846,14 @@ function TimerBar({ seconds, onExpire }) {
 // light up, and the same example came back — the child just copied it): the wrong
 // option shakes red and goes pale, the counting stick opens right on the screen under
 // the example, and the child answers again from what is left.
-// «Счётная палка на экране» keeps the stick there from the start; the 🧮 button
-// («Кнопка счётного помощника») opens it before any mistake. The options are real
+// «Счётная палка: Всегда на экране» keeps the stick there from the start (no 🧮 button here). The options are real
 // mistakes in ascending order (`makeResultOptions`). A right answer is green — the
 // subtraction result used to turn red. The keypad variant checks on «Готово».
 function ResultTask({ task, onCorrect, onIncorrect, onStreakReset }) {
   const [solved, setSolved] = useState(false);
   const [tried, setTried] = useState([]);
   const [shakeValue, setShakeValue] = useState(null);
-  // «Счётная палка на экране» (stickAlways): the stick is there from the start (owner, 2026-11-28 —
+  // «Счётная палка: Всегда на экране» (stickAlways): the stick is there from the start (owner, 2026-11-28 —
   // a child who began this mode with support keeps it); otherwise it opens after a mistake.
   const [helperOpen, setHelperOpen] = useState(Boolean(task.stickAlways));
   const [typedWrong, setTypedWrong] = useState(false);
@@ -944,16 +943,6 @@ function ResultTask({ task, onCorrect, onIncorrect, onStreakReset }) {
       )}
       {task.timer > 0 && !solved && (
         <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
-      )}
-      {task.showHelper && !helperOpen && !solved && (
-        <button
-          type="button"
-          className="helper-toggle-btn"
-          onClick={() => setHelperOpen(true)}
-          aria-label="Открыть помощник"
-        >
-          🧮
-        </button>
       )}
     </div>
   );

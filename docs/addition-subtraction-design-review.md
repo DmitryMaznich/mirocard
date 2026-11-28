@@ -65,10 +65,11 @@ Owner: after a mistake show the counting stick at once; code and ship without a 
 - Right answer green, the whole example lights up (the subtraction result used to turn red).
 - Bold question «Сколько стало?» on top; the example large with spaces, numbers in ink.
 - Keypad variant: the topic keypad without its ✓ (`AudioAnswerPad hideCheck`) + a «Готово» button.
-- The 🧮 button (if «Кнопка счётного помощника» is on) still opens the stick before any mistake, now inline too.
-- Setting «Счётная палка на экране» (`stickAlways`, added the same day — owner: his son started this mode with
-  support, the always-on stick must stay possible): the stick is under the example from the first task and stays
-  after the answer. Off — it opens after the first mistake (or by 🧮).
+- ONE setting «Счётная палка» (`params.stick`): «После ошибки» (default) / «Всегда на экране» (the stick under the
+  example from the first task, stays after the answer — owner: his son started this mode with support). It
+  replaced «Кнопка счётного помощника» (the 🧮 button — small, in a corner, easy to miss) and a «Счётная палка на
+  экране» switch that lived one deploy: two settings about one stick confused the owner. No 🧮 in this mode now;
+  a saved «кнопка» on (or the day-old switch) reads as «Всегда на экране» (`stickAlways` in `engine.js`).
 
 ## 2026-11-28: minus «−», not hyphen «-», everywhere in the topic
 

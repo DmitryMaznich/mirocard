@@ -155,8 +155,10 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
     inputMode: params.inputMode ?? "choices",
     timer: params.timer ?? null,
     showStickPhase: Boolean(params.showStickPhase),
-    // «Сколько стало?»: the counting stick on the screen from the start, all the time.
-    stickAlways: Boolean(params.stickAlways),
+    // «Сколько стало?» → «Счётная палка»: «Всегда на экране» — the stick from the start, all
+    // the time; «После ошибки» — it opens after a mistake. One setting (owner, 2026-11-28) instead of
+    // «Кнопка счётного помощника» + a day-old «Счётная палка на экране»; a saved «кнопка» on → always.
+    stickAlways: params.stick ? params.stick === "always" : Boolean(params.stickAlways || params.showHelper),
   };
 
   let delta = randomInt(1, changeMax);

@@ -1791,6 +1791,12 @@ export default function ParamsScreen({ drawingCard = null, onDrawingBack } = {})
         if (saved.operation == null && mode?.params?.operation) out.operation = resolved.operation;
         continue;
       }
+      if (key === "stick" && mode?.type === "operation_result" && saved.stick == null) {
+        // «Счётная палка» (2026-11-28) replaced «Кнопка счётного помощника» (showHelper) and a day-old
+        // «Счётная палка на экране» (stickAlways): either one on reads as «Всегда на экране» (engine.js)
+        out[key] = saved.showHelper || saved.stickAlways ? "always" : def.default;
+        continue;
+      }
       if (key === "crossTen" && mode?.type === "operation_audio") {
         // «Через десяток» saved before 2026-11-26 was none / cross / mixed (dictation.js)
         out[key] = resolveDictationParams(saved).crossTen;
