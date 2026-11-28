@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { handPoseImage } from "./fingerTasks.js";
-import { ChecklistItem, FingersKeypad } from "./FingersCountTask.jsx";
+import { ChecklistItem, CounterHand, FingersKeypad } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
@@ -63,18 +63,6 @@ function LearnTask({ task, hint, onCorrect, onPrevious }) {
 // canonical pose is shown as a model. Whether the child also shows it on their own
 // hands is the adult's business.
 const MODEL_AFTER_MISTAKES = 2;
-
-function CounterHand({ count, side, onRaise, onLower, disabled }) {
-  return (
-    <div className="fng-tap-hand">
-      <AnimatedHand count={count} side={side} style={{ flex: "0 1 auto", minHeight: 0, width: "100%", aspectRatio: "256 / 320" }} />
-      <div className="fng-hand-buttons">
-        <button type="button" className="fng-hand-btn fng-hand-btn--down" disabled={disabled || count <= 0} onClick={onLower} aria-label="Опустить палец">▼</button>
-        <button type="button" className="fng-hand-btn fng-hand-btn--up" disabled={disabled || count >= 5} onClick={onRaise} aria-label="Поднять палец">▲</button>
-      </div>
-    </div>
-  );
-}
 
 function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const [left, setLeft] = useState(0);

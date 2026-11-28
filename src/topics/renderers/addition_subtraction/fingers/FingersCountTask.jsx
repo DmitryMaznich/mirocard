@@ -69,37 +69,17 @@ export function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable
   );
 }
 
-// Two big arrow buttons — green raises, red lowers — centered on one hand's
-// palm. Replaces the old per-finger dot system entirely: AnimatedHand only
-// ever needs a COUNT (0-5) to pick its pose, never which specific finger
-// changed, so there's no more need to compute individual finger tip/base
-// positions — a hand is just a number that goes up or down. Each arrow
-// disables at that hand's own physical limit (can't raise past 5, can't
-// lower past 0) — never at the secret target, so their availability never
-// hints the answer, and any wrong split is genuinely reachable and
-// self-correctable with the opposite arrow (no full reset needed for a
-// single mis-tap).
-export function HandArrows({ count, onRaise, onLower }) {
+// A hand with its ▼ / ▲ pair in a row under the wrist (owner, 2026-11-28: off the
+// palm, sized from the hand). Used by «Считаем на пальцах» and «Покажи на пальцах» →
+// «Цифра → пальцы». `buttons={false}` keeps their place, so the hand doesn't jump.
+export function CounterHand({ count, side, onRaise, onLower, disabled, buttons = true }) {
   return (
-    <div className="fng-hand-arrows">
-      <button
-        type="button"
-        className="fng-arrow fng-arrow--up"
-        disabled={count >= 5}
-        onClick={onRaise}
-        aria-label="Поднять палец"
-      >
-        ▲
-      </button>
-      <button
-        type="button"
-        className="fng-arrow fng-arrow--down"
-        disabled={count <= 0}
-        onClick={onLower}
-        aria-label="Опустить палец"
-      >
-        ▼
-      </button>
+    <div className="fng-tap-hand">
+      <AnimatedHand count={count} side={side} style={{ flex: "0 1 auto", minHeight: 0, width: "100%", aspectRatio: "256 / 320" }} />
+      <div className="fng-hand-buttons" style={buttons ? undefined : { visibility: "hidden" }}>
+        <button type="button" className="fng-hand-btn fng-hand-btn--down" disabled={disabled || !buttons || count <= 0} onClick={onLower} aria-label="Опустить палец">▼</button>
+        <button type="button" className="fng-hand-btn fng-hand-btn--up" disabled={disabled || !buttons || count >= 5} onClick={onRaise} aria-label="Поднять палец">▲</button>
+      </div>
     </div>
   );
 }
@@ -232,21 +212,9 @@ function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
         )}
       </div>
 
-      <div className="fng-add-hands-zone">
-        <div className="fng-sub-hands">
-          <div className="fng-sub-hand-wrap">
-            <div className="fng-sub-hand-inner">
-              <AnimatedHand count={handLeft} side="right" style={{ width: "100%", height: "100%" }} />
-              {building && <HandArrows count={handLeft} onRaise={raiseLeft} onLower={lowerLeft} />}
-            </div>
-          </div>
-          <div className="fng-sub-hand-wrap">
-            <div className="fng-sub-hand-inner">
-              <AnimatedHand count={handRight} side="left" style={{ width: "100%", height: "100%" }} />
-              {building && <HandArrows count={handRight} onRaise={raiseRight} onLower={lowerRight} />}
-            </div>
-          </div>
-        </div>
+      <div className={`fng-tap-hands${handShake ? " is-shaking" : ""}`}>
+        <CounterHand count={handLeft} side="right" buttons={building} onRaise={raiseLeft} onLower={lowerLeft} />
+        <CounterHand count={handRight} side="left" buttons={building} onRaise={raiseRight} onLower={lowerRight} />
       </div>
 
       <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>

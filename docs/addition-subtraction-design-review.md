@@ -74,6 +74,10 @@ Owner's decisions (step 1 of 2):
     middle + ring …; gluing fingers of the open hand onto the fist left seams the owner rejected). Dots ON the
     fingers were tried by the owner earlier — even less clear.
   Numbers in shuffled rounds of 0–10, never the same twice in a row. Stats per `fshow_<n>`.
+- «Считаем на пальцах» (`fingers_count`) got the same ▼ ▲ under the wrist (`CounterHand`, exported from
+  `FingersCountTask.jsx`; the old on-palm `HandArrows` and the `.fng-sub-hand*` / `.fng-arrow` CSS are gone).
+  Known, not fixed (was so before): on a landscape tablet (~1024×700 session area) the expression, the checklist
+  and the keypad leave the hands ≈ 80 px tall.
 - All hand drawings (the 14 in the app + every Gemini draft) are copied to
   `docs/mockups/addition-subtraction/hands/` with a README; the app reads `public/hands/`.
 - **Пальцы → цифра**: hands in a random split of n (`fingerSplits`: 5 = 0+5 … 5+0), the child types n on the

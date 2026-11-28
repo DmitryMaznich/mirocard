@@ -213,7 +213,7 @@
 /*
  * Three fixed zones that never shift position:
  *   fng-add-top   — expression + hint (flex-shrink: 0)
- *   fng-add-hands-zone — hands (flex: 1, fills remaining space)
+ *   fng-tap-hands — hands with their ▼ / ▲ buttons (flex: 1, fills remaining space)
  *   fng-add-kbd-zone   — keyboard (flex-shrink: 0, fixed at bottom)
  * Visibility is controlled via opacity so layout stays frozen.
  */
@@ -247,7 +247,7 @@
 }
 
 /* On phone this 1em top margin (plus the fixed-height checklist below it)
-   starves .fng-add-hands-zone (flex:1) of height, so the hands render
+   starves the hands (.fng-tap-hands, flex:1) of height, so the hands render
    noticeably smaller than in "Покажи" (.fng-show-hands, which only shares
    space with the number and has no checklist/keypad competing for room).
    Trim the margin here so the freed height goes straight to the hands. */
@@ -278,7 +278,7 @@
 
 /* Same reason as .fng-count-expr's phone margin above: this budget (sized
    for 3 stacked rows, even though only 1-2 ever show at once) is the
-   biggest fixed consumer ahead of .fng-add-hands-zone. useRowsHeightCap
+   biggest fixed consumer ahead of the hands (.fng-tap-hands). useRowsHeightCap
    reads this box's own height and adapts its font cap automatically, so
    shrinking it here doesn't break the text-fit logic — rows just get a
    smaller (still readable, floor 14px) cap instead of the unused 32px
@@ -385,112 +385,13 @@
   75%       { transform: translateX(6px); }
 }
 
-/* Zone 2: hands — always in DOM, opacity controls visibility.
- * Each hand is absolutely positioned at 40% width so it NEVER changes size.
- * translateX slides them from spread (20% gap) to touching (0 gap):
- *   left hand  translateX(+25%) = +10% of container
- *   right hand translateX(-25%) = -10% of container
- *   → both right/left edges reach 50% = hands touch at center.
- */
-.fng-add-hands-zone {
-  position: relative;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  transition: opacity 0.25s ease;
-}
+/* Zone 2: hands — .fng-tap-hands / .fng-tap-hand / .fng-hand-buttons (see the
+ * FingersShow section): each hand with its ▼ / ▲ pair under the wrist. */
 
 /* Zone 3: keyboard — always in DOM, opacity controls visibility */
 .fng-add-kbd-zone {
   flex-shrink: 0;
   transition: opacity 0.3s ease;
-}
-
-/* Zone 2 inner — subtraction hands (flex, no merge animation). */
-.fng-sub-hands {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  gap: 8px;
-}
-
-/*
- * Wrapper: flex cell that centres its content.
- * Contains fng-sub-hand-inner which mirrors the exact displayed image size.
- */
-.fng-sub-hand-wrap {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/*
- * Inner container that replicates objectFit:contain geometry.
- * aspect-ratio matches the 256×320 image canvas; max-width/max-height keep
- * it inside the wrapper whether the image is width-limited or height-limited
- * (e.g. tablet landscape). The overlay and HandImg both live here so they
- * are always in exact register.
- */
-.fng-sub-hand-inner {
-  position: relative;
-  aspect-ratio: 256 / 320;
-  width: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  /* Lets the arrows below size themselves in cqw — a fraction of THIS
-   * box's own rendered width — instead of a fixed px or a phone/tablet
-   * breakpoint, so the same proportion holds at any hand size. */
-  container-type: inline-size;
-}
-
-/* ── Hand arrows (raise / lower) ──────────────────────────────────── */
-/* Two big arrows at the wrist, replacing the old per-finger dots —
- * AnimatedHand only needs a count, not a specific finger's position, so
- * these never move; only their disabled state changes at the 0/5 bounds. */
-.fng-hand-arrows {
-  position: absolute;
-  left: 50%;
-  bottom: 3%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4cqw;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.fng-arrow {
-  pointer-events: auto;
-  width: 14cqw;
-  aspect-ratio: 1;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 6cqw;
-  line-height: 1;
-  color: #fff;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-}
-
-.fng-arrow:active { transform: scale(0.9); }
-
-.fng-arrow--up { background: #22c55e; }
-.fng-arrow--down { background: #ef4444; }
-
-.fng-arrow:disabled {
-  opacity: 0.22;
-  box-shadow: none;
-  pointer-events: none;
 }
 
 /* ── end FingersCount addition ───────────────────────────────────── */
