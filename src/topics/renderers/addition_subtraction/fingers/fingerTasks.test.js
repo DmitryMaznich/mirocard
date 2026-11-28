@@ -96,8 +96,16 @@ describe("generateTasks – fingers_show", () => {
     expect(fives.size).toBeGreaterThan(1);
   });
 
-  it("Пальцы → цифра: each hand's fingers match its count, and other fingers than the canonical ones come up", () => {
+  it("Пальцы → цифра, «Обычные» (default): only the canonical pose on each hand", () => {
     const tasks = generateFingersShowTasks({ task: "recognize" });
+    for (const t of tasks) {
+      expect(t.leftPose).toBe(HAND_POSES[t.left][0]);
+      expect(t.rightPose).toBe(HAND_POSES[t.right][0]);
+    }
+  });
+
+  it("Пальцы → цифра, «Разные»: each hand's fingers match its count, and other fingers than the canonical ones come up", () => {
+    const tasks = generateFingersShowTasks({ task: "recognize", fingers: "varied" });
     for (const t of tasks) {
       expect(t.leftPose.length).toBe(t.left);
       expect(t.rightPose.length).toBe(t.right);

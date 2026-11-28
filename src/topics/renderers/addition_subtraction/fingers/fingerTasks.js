@@ -118,10 +118,13 @@ export function generateFingersShowTasks(params = {}, cards = FINGER_CARDS, rand
   // Пальцы → цифра: one task per number per round; the split between the hands
   // and the fingers on each hand are drawn at random. 0 (two fists) is left out.
   const numbers = pool.map(card => card.params?.n ?? 0).filter(n => n > 0);
+  const varied = params.fingers === "varied";
   return shuffledRounds(numbers, 10, random, n => n).map((n) => {
     const { left, right } = pick(fingerSplits(n), random);
-    const leftPose = pick(HAND_POSES[left], random);
-    const rightPose = pick(HAND_POSES[right], random);
+    // «Пальцы»: «обычные» — the canonical pose on each hand; «разные» — any drawn pose.
+    const poses = (count) => (varied ? HAND_POSES[count] : HAND_POSES[count].slice(0, 1));
+    const leftPose = pick(poses(left), random);
+    const rightPose = pick(poses(right), random);
     return {
       type: "fingers_show",
       variant: "recognize",

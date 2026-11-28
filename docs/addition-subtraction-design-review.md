@@ -89,8 +89,10 @@ Owner's decisions (step 1 of 2):
   that 10 has two digits. Wrong: shake, clear, star series reset, the task stays. Hint after the 2nd wrong
   answer and every one after it: the raised fingers get blue numbers one by one, 1 … n in reading order (left
   hand from the left, then the right one), and they go 1.8 s after the last (`playHint`, `FINGER_TIPS` in
-  `fingerTasks.js` — fingertips of every drawing, found by the outline and checked by eye). Open question:
-  a setting «Пальцы: обычные / разные» — mockup `docs/mockups/addition-subtraction/2026-11-28-fingers-variety.html`.
+  `fingerTasks.js` — fingertips of every drawing, found by the outline and checked by eye). Setting «Пальцы»
+  (`params.fingers`): «Обычные» (default) — the canonical pose on each hand; «Разные» — any drawn pose (mockup
+  `docs/mockups/addition-subtraction/2026-11-28-fingers-variety.html`). No «до 5 / до 10» setting (owner: not needed).
+  Watch: in «Разные» the thumb-out drawings (t, ti, tp) have tall folded fingers that can read as raised.
 - **Drawing bug (2026-11-28, seen by the owner: 9 fingers on the screen, answer 8):** the approved `combo_mrp`
   («middle + ring + pinky», draft mrp_3) has FOUR fingers up. Pose removed (`HAND_POSES[3]` = imr, tim), file
   deleted, all 13 remaining drawings re-counted by eye. An automatic count by the outline does not work: folded
