@@ -98,7 +98,7 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
               key={lastHint.key}
               className={`helper-panel__hint helper-panel__hint--${lastHint.sign === "+" ? "add" : "sub"}`}
             >
-              {lastHint.sign}{lastHint.count}
+              {lastHint.sign === "-" ? "−" : lastHint.sign}{lastHint.count}
             </span>
           )}
         </div>

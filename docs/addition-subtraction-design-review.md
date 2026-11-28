@@ -52,6 +52,14 @@ the column's own cells stay as they are for now.
   `AudioAnswerPad` of the other modes is unchanged.
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
+## 2026-11-28: minus «−», not hyphen «-», everywhere in the topic
+
+Owner. Tasks keep `sign: "+" / "-"` (data, comparisons, stats); every place that SHOWS a sign maps it through
+`showSign` (`index.jsx`): the example (`OperationExpression`, «Найди неизвестное»), the sign buttons, «Знак ↔
+Действие» («−3»), the counting helper's «−N». Already «−» before: «Назови действие», «Пример в несколько
+действий», «Контрольная работа», «Найди знак», the finger modes. The A4 PDF prints «–» (the outline font has no
+U+2212) — unchanged.
+
 ## 2026-11-28: «7. Считаем на пальцах» (fingers_count) — redone after the mockup
 
 Mockup (approved, «выкатывай»): `docs/mockups/addition-subtraction/2026-11-28-fingers-count.html`. Code:

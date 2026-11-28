@@ -28,9 +28,13 @@ const ACTION_OPTIONS_PAST = [
   { value: "remove", label: "Убрали"    },
 ];
 
+// Tasks keep the sign as "+" / "-" (data, comparisons, stats); the screen always shows a
+// true minus «−» (U+2212, as wide as the plus), never the hyphen «-» (owner, 2026-11-28).
+export const showSign = (sign) => (sign === "-" ? "−" : sign);
+
 const SIGN_OPTIONS = [
   { value: "+", label: "+" },
-  { value: "-", label: "-" },
+  { value: "-", label: "−" },
 ];
 
 function getRightLabel(task) {
@@ -197,7 +201,7 @@ function OperationExpression({ task, missingSign = false, missingResult = false,
     <div className="operation-expression" aria-label="пример">
       <span className={partClass("start", "operation-expression__number")}>{task.start}</span>
       <span className={partClass("sign", `operation-expression__sign${missingSign ? " operation-expression__sign--hidden" : ` operation-expression__sign--${task.operation}`}`)}>
-        {missingSign ? "?" : task.sign}
+        {missingSign ? "?" : showSign(task.sign)}
       </span>
       <span className={partClass("delta", "operation-expression__number")}>{task.delta}</span>
       <span className="operation-expression__equals">=</span>
@@ -231,7 +235,7 @@ function getSignActionLinkPrompt(task) {
       ]
     : [
         { value: "+", label: `+${task.delta}` },
-        { value: "-", label: `-${task.delta}` },
+        { value: "-", label: `−${task.delta}` },
       ];
   const choiceVariant = isSignToAction ? "action-words" : "large-signs";
 
@@ -244,7 +248,7 @@ function getSignActionLinkPrompt(task) {
         <div className="operation-link-drill__question">{question}</div>
         {isSignToAction ? (
           <div className={`operation-link-drill__symbol operation-link-drill__symbol--${task.operation}`}>
-            {task.sign}{task.delta}
+            {showSign(task.sign)}{task.delta}
           </div>
         ) : (
           <div className={`operation-link-drill__verb operation-link-drill__verb--${task.operation}`}>
@@ -1122,7 +1126,7 @@ function MissingTermExpression({ task, answered }) {
   return (
     <div className="operation-expression" aria-label="пример">
       {renderSlot(task.A, "left")}
-      <span className={`operation-expression__sign operation-expression__sign--${task.operation}`}>{task.sign}</span>
+      <span className={`operation-expression__sign operation-expression__sign--${task.operation}`}>{showSign(task.sign)}</span>
       {renderSlot(task.B, "right")}
       <span className="operation-expression__equals">=</span>
       <span className="operation-expression__number">{task.C}</span>
