@@ -1404,7 +1404,7 @@ export default function AdditionSubtractionRenderer({ task, sessionParams, onCor
     return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onStreakReset} onFlashIncorrect={onFlashIncorrect} onPrevious={onPrevious} playFeedback={playFeedback} />;
   }
   if (task.type === "fingers_count") {
-    return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={sessionParams?.strictStars ? onMistake : undefined} onFlashIncorrect={onFlashIncorrect} />;
+    return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={sessionParams?.strictStars ? onStreakReset : undefined} onFlashIncorrect={onFlashIncorrect} playFeedback={playFeedback} />;
   }
   return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} accountKv={accountKv} />;
 }

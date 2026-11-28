@@ -4,7 +4,7 @@
    screen's plain fill so the task reaches the top of the screen. */
 .session-renderer-wrap:has(> .fng-show-screen),
 .session-renderer-wrap:has(> .fng-show-check),
-.session-renderer-wrap:has(> .fng-add-screen) {
+.session-renderer-wrap:has(> .fng-count-screen) {
   margin-top: -58px;
   padding-top: 58px;
   background-color: #f0f6ff;
@@ -13,7 +13,7 @@
 @media (max-width: 560px) {
   .session-renderer-wrap:has(> .fng-show-screen),
   .session-renderer-wrap:has(> .fng-show-check),
-  .session-renderer-wrap:has(> .fng-add-screen) {
+  .session-renderer-wrap:has(> .fng-count-screen) {
     margin-top: -86px;
     padding-top: 86px;
   }
@@ -203,6 +203,14 @@
      smaller of the two — about a quarter of the hand's width either way. */
   container-type: size;
 }
+/* The drawn hand, kept at its 256×320 proportion inside the cell (room left for the
+   ▼ / ▲ row), so the counting numbers can sit on the fingertips by percent. */
+.fng-hand-box {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100cqw, calc((100cqh - 78px) * 0.8));
+  aspect-ratio: 256 / 320;
+}
 /* ▼ / ▲ under the wrist (owner, 2026-11-28): off the palm, so they never cover the fingers. */
 .fng-hand-buttons {
   flex-shrink: 0;
@@ -350,189 +358,103 @@
 
 /* ── end FingersShow ────────────────────────────────────────────── */
 
-/* ── FingersCount addition layout ───────────────────────────────── */
-/*
- * Three fixed zones that never shift position:
- *   fng-add-top   — expression + hint (flex-shrink: 0)
- *   fng-tap-hands — hands with their ▼ / ▲ buttons (flex: 1, fills remaining space)
- *   fng-add-kbd-zone   — keyboard (flex-shrink: 0, fixed at bottom)
- * Visibility is controlled via opacity so layout stays frozen.
- */
-
-.fng-add-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* ── «Считаем на пальцах» (2026-11-28, mockup docs/mockups/addition-subtraction/2026-11-28-fingers-count.html) ── */
+.fng-count-screen {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "expr" "step" "hands" "pad" "done";
+  justify-items: center;
+  gap: 6px;
   width: 100%;
   height: 100%;
   background: #f0f6ff;
-  padding: 12px 8px 10px;
+  padding: 10px 10px calc(12px + var(--app-safe-bottom, 0px));
   box-sizing: border-box;
   overflow: hidden;
 }
+.fng-count-box {
+  grid-area: expr;
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2.4vw, 16px);
+  padding: 4px clamp(16px, 4vw, 26px);
+  background: #fff;
+  border: 2px solid #dbe4ea;
+  border-radius: 22px;
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: clamp(48px, min(15vw, 9vh), 90px);
+  line-height: 1.1;
+  color: #1a2540;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+.fng-count-op--add { color: #1f7a6f; }
+.fng-count-op--sub { color: #c04040; }
+.fng-count-eq { color: #7a8c88; }
+.fng-count-res { min-width: 0.7em; text-align: center; color: #a9b4b2; }
+.fng-count-res.is-typed { color: #1a2540; }
+.fng-count-box.is-done { background: #f0fdf4; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.33); }
+.fng-count-box.is-done .fng-count-res { color: #16a34a; }
+.fng-count-box.is-wrong { animation: fng-answer-shake 0.4s ease; }
+.fng-count-box.is-wrong .fng-count-res { color: #ef4444; }
 
-.fng-add-top {
-  flex-shrink: 0;
+.fng-count-step {
+  grid-area: step;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 4px;
 }
-
-.fng-count-expr {
-  font-family: 'Primo', sans-serif;
-  font-size: clamp(52px, 14vw, 90px);
-  color: #1a2540;
-  letter-spacing: 4px;
-  line-height: 1;
-  margin-top: 1em; /* shifted down one line from the screen edge */
+.fng-count-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 22px; }
+.fng-count-chip {
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 99px;
+  padding: 2px 10px;
 }
-
-/* On phone this 1em top margin (plus the fixed-height checklist below it)
-   starves the hands (.fng-tap-hands, flex:1) of height, so the hands render
-   noticeably smaller than in "Покажи" (.fng-show-hands, which only shares
-   space with the number and has no checklist/keypad competing for room).
-   Trim the margin here so the freed height goes straight to the hands. */
-@media (max-width: 560px) {
-  .fng-count-expr {
-    margin-top: 4px;
-  }
-}
-
-/* Sits between the expression and the hands zone (i.e. roughly level with
- * where raised fingertips are) rather than crammed under the expression.
- * Fixed (viewport-relative, not content-driven) height — useRowsHeightCap
- * measures THIS box to size the active row's text, so the box's own height
- * can't depend on that text or the two would fight in a circle. Budgeted
- * for 3 stacked rows even though only 1-2 are ever shown at once. */
-.fng-checklist {
-  flex-shrink: 0;
-  width: 100%;
-  box-sizing: border-box;
-  height: clamp(120px, 26vh, 210px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 14px;
-  overflow: hidden;
-}
-
-/* Same reason as .fng-count-expr's phone margin above: this budget (sized
-   for 3 stacked rows, even though only 1-2 ever show at once) is the
-   biggest fixed consumer ahead of the hands (.fng-tap-hands). useRowsHeightCap
-   reads this box's own height and adapts its font cap automatically, so
-   shrinking it here doesn't break the text-fit logic — rows just get a
-   smaller (still readable, floor 14px) cap instead of the unused 32px
-   ceiling this height was already exceeding. */
-@media (max-width: 560px) {
-  .fng-checklist {
-    height: clamp(100px, 16vh, 150px);
-  }
-}
-
-/* One row — the whole thing is the tap target while active; doubles as the
- * old floating "Сделал!" pill, but now visually attached to the exact
- * instruction it confirms instead of floating separately between the hands. */
-.fng-checklist-item {
+.fng-count-instr {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fff;
-  border: 2px solid #dbe4f3;
-  border-radius: 18px;
-  padding: 10px 16px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
-}
-
-.fng-checklist-item:active { transform: scale(0.98); }
-
-.fng-checklist-item.is-done {
-  background: #dcfce7;
-  border-color: #16a34a;
-  cursor: default;
-  padding: 7px 16px;
-}
-
-.fng-checklist-item.is-wrong {
-  border-color: #ef4444;
-  animation: fng-answer-shake 0.4s ease;
-}
-
-/* "Введи ответ" — visible but not itself tappable, since the numpad (not
- * a tap on this row) is what ticks it off. No pointer cursor / press
- * feedback so it doesn't look like a dead button. */
-.fng-checklist-item.is-pending {
-  cursor: default;
-}
-.fng-checklist-item.is-pending:active { transform: none; }
-
-.fng-checklist-box {
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  border: 2.5px solid #b9c3d9;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.25s cubic-bezier(.34,1.4,.64,1);
-}
-
-.is-done .fng-checklist-box {
-  background: #22c55e;
-  border-color: #16a34a;
-}
-
-.fng-check-icon {
-  width: 18px;
-  height: 18px;
-}
-
-.fng-checklist-text {
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
+  min-height: clamp(44px, 9vh, 72px);
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: clamp(24px, 7vw, 36px);
   color: #1a2540;
-  line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  /* Done rows shrink so the growing list still fits the fixed-height
-   * checklist box comfortably even with an active row below them. */
-  font-size: clamp(13px, 3.6vw, 17px);
-  /* Android Chrome auto-inflates ("font-boosts") text it judges too small
-   * to read, overriding the exact px size useFitOneLine just computed —
-   * this opts the element out so our own measurement is what actually
-   * renders. */
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  text-align: center;
+}
+/* the canonical pose for a moment after the 2nd wrong check of a hands step */
+.fng-count-model {
+  display: flex;
+  gap: 2px;
+  height: clamp(44px, 9vh, 72px);
+  padding: 3px 6px;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(26, 37, 64, 0.12);
+  animation: fng-model-in 0.3s ease;
 }
 
-.is-done .fng-checklist-text {
-  text-decoration: line-through;
-  text-decoration-color: #16a34a;
-  text-decoration-thickness: 2px;
+.fng-count-hands { grid-area: hands; }
+.fng-count-pad { grid-area: pad; width: 100%; display: flex; justify-content: center; }
+.fng-count-done { grid-area: done; }
+
+/* Landscape tablet: the example, the instruction and «Готово» on the left, the hands in
+   the whole height on the right, the keypad under the hands. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) and (min-width: 700px) {
+  .fng-count-screen {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas: "expr hands" "step hands" ". hands" "done pad";
+    column-gap: 22px;
+    padding: 16px 20px calc(16px + var(--app-safe-bottom, 0px));
+  }
+  .fng-count-box { align-self: end; }
+  .fng-count-done { align-self: end; }
 }
 
-.fng-count-answer { color: #3b82f6; display: inline-block; min-width: 0.6em; }
-.fng-count-answer--correct { color: #22c55e; }
-.fng-count-answer--shake { animation: fng-answer-shake 0.4s ease; color: #ef4444; }
-@keyframes fng-answer-shake {
-  0%, 100% { transform: translateX(0); }
-  25%       { transform: translateX(-6px); }
-  75%       { transform: translateX(6px); }
-}
-
-/* Zone 2: hands — .fng-tap-hands / .fng-tap-hand / .fng-hand-buttons (see the
- * FingersShow section): each hand with its ▼ / ▲ pair under the wrist. */
-
-/* Zone 3: keyboard — always in DOM, opacity controls visibility */
-.fng-add-kbd-zone {
-  flex-shrink: 0;
-  transition: opacity 0.3s ease;
-}
-
-/* ── end FingersCount addition ───────────────────────────────────── */
+/* ── end «Считаем на пальцах» ───────────────────────────────────── */

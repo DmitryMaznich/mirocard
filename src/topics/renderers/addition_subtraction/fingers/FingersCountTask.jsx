@@ -1,70 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
-import DigitKeypad from "../../column_addition/DigitKeypad.jsx";
-import { useTapButtonSize } from "../../column_addition/useTapButtonSize.js";
-import { useFitOneLine, useRowsHeightCap } from "./textFit.js";
-import "../../column_addition/tapKeyboard.css";
+import { getFingerConfig } from "./FingerSystem.js";
+import { FINGER_TIPS_R } from "./handShapes.js";
+import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
-// Same hand-written-style buttons as the Столбик tap keyboard, plus a delete
-// key (needed here since results can be multi-digit and mistyped, unlike a
-// single-cell column entry). fontFamily is forced to sans-serif for the ⌫
-// glyph — Primo (the digit font) doesn't have a glyph for it.
-export function FingersKeypad({ onDigit, onDelete, active }) {
-  // 48 is the shared col-tap-kb base — 15% smaller here specifically,
-  // since this keypad felt oversized on phone; passed locally rather than
-  // changed in useTapButtonSize itself so the Столбик keyboard is untouched.
-  const bs = useTapButtonSize(41);
-  const bsStr = bs + "px";
+// The topic's keypad in print digits (1–5 / 6–0, ⌫ on the right): «Считаем на пальцах»
+// and «Покажи на пальцах» → «Пальцы → цифра».
+export function PrintKeypad({ onDigit, onBackspace, disabled }) {
   return (
-    <div className="col-tap-kb" style={{ pointerEvents: active ? "auto" : "none" }}>
-      <DigitKeypad onDigit={onDigit} bs={bs} />
-      <div className="col-tap-row">
-        <button
-          className="col-tap-btn col-tap-btn--line"
-          style={{ height: bsStr, flex: 1, color: "#ef4444", fontFamily: "sans-serif", fontSize: Math.round(bs * 0.5) + "px" }}
-          onClick={onDelete}
-        >
-          ⌫
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="fng-check-icon" fill="none" aria-hidden="true">
-      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// A checklist row doubling as the confirm button — replaces the old
-// floating "Сделал!" pill between the hands, which kids kept missing
-// entirely since it wasn't visually tied to the instruction they'd just
-// read. The instruction itself is now the tap target: a checkbox that
-// fills in once tapped correctly. Completed rows STAY on screen (frozen,
-// green, checked, struck through) instead of being replaced by the next
-// instruction — the child can see the whole path so far, not just the
-// current step. `clickable=false` is for the final "Введи ответ" row: it
-// still shows pending → done, but ticks itself off once the numpad gets
-// the right digits, not from a tap on the row.
-export function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
-  const done = state === "done";
-  const wrong = state === "wrong";
-  const interactive = clickable && !done;
-  return (
-    <div
-      className={`fng-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!clickable ? " is-pending" : ""}`}
-      onClick={interactive ? onTap : undefined}
-      role={interactive ? "button" : undefined}
-      tabIndex={interactive ? 0 : undefined}
-    >
-      <span className="fng-checklist-box">{done && <CheckIcon />}</span>
-      <span ref={textRef} className="fng-checklist-text" style={fontSize ? { fontSize } : undefined}>
-        {text}
-      </span>
+    <div className="fng-keypad">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
+        <button key={d} type="button" className="fng-key" disabled={disabled} onClick={() => onDigit(d)}>{d}</button>
+      ))}
+      <button type="button" className="fng-key fng-key--erase" disabled={disabled} onClick={onBackspace} aria-label="Стереть">⌫</button>
     </div>
   );
 }
@@ -72,10 +21,16 @@ export function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable
 // A hand with its ▼ / ▲ pair in a row under the wrist (owner, 2026-11-28: off the
 // palm, sized from the hand). Used by «Считаем на пальцах» and «Покажи на пальцах» →
 // «Цифра → пальцы». `buttons={false}` keeps their place, so the hand doesn't jump.
-export function CounterHand({ count, side, onRaise, onLower, disabled, buttons = true }) {
+// `marks`: numbers to show on the fingertips ({ x, y, k } in 0…1 of the drawing).
+export function CounterHand({ count, side, onRaise, onLower, disabled, buttons = true, marks = [] }) {
   return (
     <div className="fng-tap-hand">
-      <AnimatedHand count={count} side={side} style={{ flex: "0 1 auto", minHeight: 0, width: "100%", aspectRatio: "256 / 320" }} />
+      <div className="fng-hand-box">
+        <AnimatedHand count={count} side={side} style={{ width: "100%", height: "100%" }} />
+        {marks.map((m) => (
+          <span key={m.k} className="fng-tip-mark" style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%` }}>{m.k}</span>
+        ))}
+      </div>
       <div className="fng-hand-buttons" style={buttons ? undefined : { visibility: "hidden" }}>
         <button type="button" className="fng-hand-btn fng-hand-btn--down" disabled={disabled || !buttons || count <= 0} onClick={onLower} aria-label="Опустить палец">▼</button>
         <button type="button" className="fng-hand-btn fng-hand-btn--up" disabled={disabled || !buttons || count >= 5} onClick={onRaise} aria-label="Поднять палец">▲</button>
@@ -84,148 +39,186 @@ export function CounterHand({ count, side, onRaise, onLower, disabled, buttons =
   );
 }
 
-// ── Shared two-phase flow (addition and subtraction) ────────────────────────
-// Both hands are just free-standing 0-5 counters the child distributes
-// however they like — no dedicated "this hand is addend A" rule, no fixed
-// fill order. Flow: two fists → raise/lower freely on either hand until the
-// total matches `a` → confirm → keep going WITHOUT resetting (raise more
-// for addition, lower for subtraction) until the total matches the result →
-// confirm → numpad. A wrong confirm shakes and resets: to 0/0 fists at the
-// first checkpoint, or back to the EXACT split that was confirmed for `a`
-// at the second (the first number was already right, only the
-// continuation needs redoing). Subtraction used to pre-show the minuend
-// automatically — now the child builds it themselves too, same as addition,
-// so the two operations share this one component entirely.
-function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+// The raised fingers numbered 1 … n in reading order: the left hand (drawing as is)
+// from the left, then the right hand (mirrored) from the left.
+function countingMarks(left, right) {
+  let k = 0;
+  return [left, right].map((count, side) => (FINGER_TIPS_R[count] ?? [])
+    .map((p) => ({ x: side ? 1 - p.x : p.x, y: p.y }))
+    .sort((a, b) => a.x - b.x)
+    .map((p) => ({ ...p, k: ++k })));
+}
+
+// «Считаем на пальцах» (redone 2026-11-28 after the mockup
+// docs/mockups/addition-subtraction/2026-11-28-fingers-count.html):
+// the example large in print in a box; ONE current instruction («Покажи 8» → «Убери 3» /
+// «Прибавь ещё 4» → «Сколько стало?»), the steps done as small chips above it; the two
+// hands with ▼ / ▲ under the wrists; «Готово» checks every step. Both hands are free
+// 0–5 counters — any split that adds up is right. A wrong check shakes and KEEPS the
+// hands (the child corrects them); after the 2nd wrong check of a step: on a hands step
+// the canonical pose for a moment beside the instruction, on the answer step the
+// raised fingers get their numbers one by one. The answer is typed on the print keypad
+// and checked on «Готово»; right → «Дальше», and that tap moves on.
+const HINT_AFTER_MISTAKES = 2;
+const MODEL_SHOW_MS = 3000;
+const COUNT_STEP_MS = 380;
+const COUNT_HOLD_MS = 1800;
+const MAX_DIGITS = 2;
+
+function ModelHands({ n }) {
+  const { left, right } = getFingerConfig(n);
+  return (
+    <span className="fng-count-model" aria-hidden="true">
+      {/* the child's left hand on the left (drawing as is), the right hand mirrored */}
+      <AnimatedHand count={left} side="right" animated={false} style={{ height: "100%", aspectRatio: "256 / 320" }} />
+      <AnimatedHand count={right} side="left" animated={false} style={{ height: "100%", aspectRatio: "256 / 320" }} />
+    </span>
+  );
+}
+
+function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedback }) {
   const { a, b, result, op } = task;
   const [phase, setPhase] = useState("build"); // build | apply | answer | done
   const [handLeft, setHandLeft] = useState(0);
   const [handRight, setHandRight] = useState(0);
-  const checkpointRef = useRef({ left: 0, right: 0 });
-  const [input, setInput] = useState([]);
+  const [input, setInput] = useState("");
   const [shake, setShake] = useState(false);
-  // Separate from `shake` (the numpad's own wrong-digit shake) — this one
-  // fires when the confirm check finds the hands don't match the example.
-  const [handShake, setHandShake] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [modelVisible, setModelVisible] = useState(false);
+  const [marks, setMarks] = useState(0);
+  // Two timer lists: the hint's own (cleared when a hint restarts or the step changes)
+  // and the shake's, so restarting a hint never leaves the shake — and the locked
+  // buttons — on.
+  const timers = useRef([]);
+  const shakeTimer = useRef(null);
+  const later = (fn, ms) => { timers.current.push(setTimeout(fn, ms)); };
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
 
-  const resultStr = String(result);
+  useEffect(() => {
+    clearTimers(); clearTimeout(shakeTimer.current);
+    setPhase("build"); setHandLeft(0); setHandRight(0); setInput("");
+    setShake(false); setMistakes(0); setModelVisible(false); setMarks(0);
+  }, [task.cardId]);
+  useEffect(() => () => { clearTimers(); clearTimeout(shakeTimer.current); }, []);
+
   const building = phase === "build" || phase === "apply";
   const target = phase === "build" ? a : result;
 
-  useEffect(() => {
-    setPhase("build");
-    setHandLeft(0); setHandRight(0);
-    checkpointRef.current = { left: 0, right: 0 };
-    setInput([]); setShake(false); setHandShake(false);
-  }, [task.cardId]);
+  function nextStep(to) {
+    clearTimers();
+    setMistakes(0); setModelVisible(false); setMarks(0);
+    setPhase(to);
+  }
 
-  function confirm() {
-    const total = handLeft + handRight;
-    if (total !== target) {
-      setHandShake(true);
-      setTimeout(() => {
-        setHandShake(false);
-        if (phase === "build") { setHandLeft(0); setHandRight(0); }
-        else { setHandLeft(checkpointRef.current.left); setHandRight(checkpointRef.current.right); }
-      }, 500);
-      onMistake?.();
+  function hint() {
+    clearTimers();
+    if (building) {
+      setModelVisible(true);
+      later(() => setModelVisible(false), MODEL_SHOW_MS);
       return;
     }
-    if (phase === "build") {
-      checkpointRef.current = { left: handLeft, right: handRight };
-      setPhase("apply");
-    } else if (phase === "apply") {
-      setPhase("answer");
-    }
+    setMarks(0);
+    for (let k = 1; k <= result; k++) later(() => setMarks(k), 500 + (k - 1) * COUNT_STEP_MS);
+    later(() => setMarks(0), 500 + (result - 1) * COUNT_STEP_MS + COUNT_HOLD_MS);
   }
 
-  function raiseLeft()  { setHandLeft(c => Math.min(5, c + 1)); }
-  function lowerLeft()  { setHandLeft(c => Math.max(0, c - 1)); }
-  function raiseRight() { setHandRight(c => Math.min(5, c + 1)); }
-  function lowerRight() { setHandRight(c => Math.max(0, c - 1)); }
+  function wrong() {
+    setShake(true);
+    clearTimeout(shakeTimer.current);
+    shakeTimer.current = setTimeout(() => { setShake(false); if (phase === "answer") setInput(""); }, 450);
+    const count = mistakes + 1;
+    setMistakes(count);
+    playFeedback?.("incorrect");
+    onMistake?.();
+    onFlashIncorrect?.();
+    if (count >= HINT_AFTER_MISTAKES) hint();
+  }
 
-  function handleDigit(d) {
+  function check() {
+    if (shake) return;
+    if (phase === "done") { onCorrect(); return; }
+    if (phase === "answer") {
+      if (!input) return;
+      if (Number(input) === result) {
+        clearTimers(); setMarks(0);
+        setPhase("done");
+        playFeedback?.("correct");
+      } else wrong();
+      return;
+    }
+    if (handLeft + handRight !== target) { wrong(); return; }
+    nextStep(phase === "build" ? "apply" : "answer");
+  }
+
+  function addDigit(d) {
     if (phase !== "answer" || shake) return;
-    const next = [...input, String(d)];
-    if (next.length < resultStr.length) { setInput(next); return; }
-    if (Number(next.join("")) === result) {
-      setPhase("done"); setTimeout(() => onCorrect(), 700);
-    } else {
-      setShake(true); setTimeout(() => { setShake(false); setInput([]); }, 500);
-      onMistake?.();
-      onFlashIncorrect?.();
-    }
+    setInput((v) => (v.length >= MAX_DIGITS ? v : v === "0" ? String(d) : v + d));
   }
+  function erase() { if (phase === "answer" && !shake) setInput((v) => v.slice(0, -1)); }
 
-  function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
-
-  const item1Text = `Покажи ${a}`;
-  const item2Text = op === "sub" ? `Убери ${b}` : `Прибавь ещё ${b}`;
-  const activeText = phase === "build" ? item1Text : phase === "apply" ? item2Text : "";
-
-  const item1State = phase === "build" ? (handShake ? "wrong" : "active") : "done";
-  const item2State = phase === "apply" ? (handShake ? "wrong" : "active") : "done";
-
-  const expr = op === "sub" ? `${a} − ${b}` : `${a} + ${b}`;
-
-  const answerPart = phase === "done"
-    ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
-    : phase === "answer"
-      ? <span className={`fng-count-answer${shake ? " fng-count-answer--shake" : ""}`}>
-          {input.length > 0 ? input.join("") : "?"}
-        </span>
-      : "?";
-
-  const kbdVisible = phase === "answer" || phase === "done";
-  const { ref: rowsCapRef, cap: rowsCap } = useRowsHeightCap(3);
-  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(activeText, { max: rowsCap, min: 14 });
+  const stepText = op === "sub" ? `Убери ${b}` : `Прибавь ещё ${b}`;
+  const instruction = phase === "build" ? `Покажи ${a}` : phase === "apply" ? stepText : "Сколько стало?";
+  const chips = [
+    phase !== "build" && `Покажи ${a}`,
+    (phase === "answer" || phase === "done") && stepText,
+  ].filter(Boolean);
+  const [marksLeft, marksRight] = countingMarks(handLeft, handRight);
+  const shownMarks = (list) => list.filter((m) => m.k <= marks);
+  const answered = phase === "done";
 
   return (
-    <div className="fng-add-screen">
-      <div className="fng-add-top">
-        <div className="fng-count-expr">{expr} = {answerPart}</div>
+    <div className="fng-count-screen">
+      <div className={`fng-count-box${answered ? " is-done" : ""}${shake && phase === "answer" ? " is-wrong" : ""}`} aria-label="пример">
+        <span>{a}</span>
+        <span className={`fng-count-op fng-count-op--${op === "sub" ? "sub" : "add"}`}>{op === "sub" ? "−" : "+"}</span>
+        <span>{b}</span>
+        <span className="fng-count-eq">=</span>
+        <span className={`fng-count-res${input ? " is-typed" : ""}`}>{answered ? result : (input || "?")}</span>
       </div>
 
-      <div className="fng-checklist" ref={rowsCapRef}>
-        <ChecklistItem
-          text={item1Text}
-          state={item1State}
-          onTap={phase === "build" ? confirm : undefined}
-          textRef={phase === "build" ? hintRef : undefined}
-          fontSize={phase === "build" ? hintFontSize : undefined}
+      <div className="fng-count-step">
+        <div className="fng-count-chips">
+          {chips.map((c) => <span key={c} className="fng-count-chip">✓ {c}</span>)}
+        </div>
+        <div className="fng-count-instr">
+          <span>{instruction}</span>
+          {modelVisible && building && <ModelHands n={target} />}
+        </div>
+      </div>
+
+      <div className={`fng-tap-hands fng-count-hands${shake && building ? " is-shaking" : ""}`}>
+        <CounterHand
+          count={handLeft} side="right" buttons={building} disabled={shake}
+          onRaise={() => setHandLeft((c) => Math.min(5, c + 1))} onLower={() => setHandLeft((c) => Math.max(0, c - 1))}
+          marks={shownMarks(marksLeft)}
         />
-        {phase !== "build" && (
-          <ChecklistItem
-            text={item2Text}
-            state={item2State}
-            onTap={phase === "apply" ? confirm : undefined}
-            textRef={phase === "apply" ? hintRef : undefined}
-            fontSize={phase === "apply" ? hintFontSize : undefined}
-          />
-        )}
-        {kbdVisible && (
-          <ChecklistItem
-            text="Введи ответ"
-            state={phase === "done" ? "done" : "active"}
-            clickable={false}
-          />
-        )}
+        <CounterHand
+          count={handRight} side="left" buttons={building} disabled={shake}
+          onRaise={() => setHandRight((c) => Math.min(5, c + 1))} onLower={() => setHandRight((c) => Math.max(0, c - 1))}
+          marks={shownMarks(marksRight)}
+        />
       </div>
 
-      <div className={`fng-tap-hands${handShake ? " is-shaking" : ""}`}>
-        <CounterHand count={handLeft} side="right" buttons={building} onRaise={raiseLeft} onLower={lowerLeft} />
-        <CounterHand count={handRight} side="left" buttons={building} onRaise={raiseRight} onLower={lowerRight} />
-      </div>
+      {(phase === "answer" || phase === "done") && (
+        <div className="fng-count-pad">
+          <PrintKeypad onDigit={addDigit} onBackspace={erase} disabled={answered || shake} />
+        </div>
+      )}
 
-      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
-        <FingersKeypad onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
+      <div className="fng-show-done-row fng-count-done">
+        <button
+          type="button"
+          className={`fng-done-btn${answered ? " is-next" : ""}${shake ? " is-wrong" : ""}`}
+          disabled={phase === "answer" && !input}
+          onClick={check}
+        >
+          {answered ? <>Дальше <ForwardArrowIcon size={18} /></> : "Готово"}
+        </button>
       </div>
     </div>
   );
 }
 
-// ── Entry point ───────────────────────────────────────────────────────────────
-
-export default function FingersCountTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
-  return <TwoPhaseTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} />;
+export default function FingersCountTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedback }) {
+  return <TwoPhaseTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} playFeedback={playFeedback} />;
 }

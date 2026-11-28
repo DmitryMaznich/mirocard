@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { FINGER_TIPS, handPoseImage } from "./fingerTasks.js";
-import { CounterHand } from "./FingersCountTask.jsx";
+import { CounterHand, PrintKeypad } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
@@ -175,17 +175,6 @@ const RECOGNIZE_MAX_DIGITS = 2;
 const HINT_AFTER_MISTAKES = 2;
 const HINT_STEP_MS = 380;
 const HINT_HOLD_MS = 1800;
-
-function PrintKeypad({ onDigit, onBackspace, disabled }) {
-  return (
-    <div className="fng-keypad">
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
-        <button key={d} type="button" className="fng-key" disabled={disabled} onClick={() => onDigit(d)}>{d}</button>
-      ))}
-      <button type="button" className="fng-key fng-key--erase" disabled={disabled} onClick={onBackspace} aria-label="Стереть">⌫</button>
-    </div>
-  );
-}
 
 function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedback }) {
   const [input, setInput] = useState("");

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 import fs from "fs";
-import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS, HAND_POSES, handPoseImage, FINGER_TIPS } from "./fingerTasks.js";
+import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS, HAND_POSES, handPoseImage, FINGER_TIPS, countStep } from "./fingerTasks.js";
 
 describe("FingerSystem", () => {
   it("FINGER_MAP has 11 entries 0..10", () => {
@@ -162,6 +162,26 @@ describe("generateTasks – fingers_count", () => {
     const t = tasks.find(t => t.op === "sub" && t.a === 7 && t.b === 2);
     expect(t?.removeMode).toBe("hand");
     expect(t?.removeHand).toBe("left");
+  });
+});
+
+describe("«Считаем на пальцах» order", () => {
+  it("goes from one hand to over five to the rest, each step shuffled", () => {
+    const tasks = generateFingerTasks("fingers_count", 500, { op: "add" });
+    const pool = FINGER_CARDS.filter(c => c.params.mode === "fingers_count" && c.params.op === "add");
+    const ladder = tasks.slice(0, pool.length).map(t => countStep({ params: t }));
+    expect([...ladder].sort((x, y) => x - y)).toEqual(ladder);
+    expect(new Set(ladder)).toEqual(new Set([1, 2, 3]));
+    expect(tasks.length).toBe(pool.length * 3);
+  });
+
+  it("puts the examples in the right step", () => {
+    expect(countStep({ params: { op: "add", a: 2, b: 3 } })).toBe(1);
+    expect(countStep({ params: { op: "add", a: 4, b: 3 } })).toBe(2);
+    expect(countStep({ params: { op: "add", a: 6, b: 2 } })).toBe(3);
+    expect(countStep({ params: { op: "sub", a: 5, b: 2 } })).toBe(1);
+    expect(countStep({ params: { op: "sub", a: 8, b: 3 } })).toBe(2);
+    expect(countStep({ params: { op: "sub", a: 7, b: 3 } })).toBe(3);
   });
 });
 

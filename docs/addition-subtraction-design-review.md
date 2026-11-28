@@ -52,6 +52,27 @@ the column's own cells stay as they are for now.
   `AudioAnswerPad` of the other modes is unchanged.
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
+## 2026-11-28: «7. Считаем на пальцах» (fingers_count) — redone after the mockup
+
+Mockup (approved, «выкатывай»): `docs/mockups/addition-subtraction/2026-11-28-fingers-count.html`. Code:
+`fingers/FingersCountTask.jsx` (rewritten), «Считаем на пальцах» block of `fingers/fingers.css`, the order in
+`fingers/fingerTasks.js`.
+- The example large in print in a box («8 − 3 = ?», minus «−»); ONE current instruction instead of the checklist
+  («Покажи 8» → «Убери 3» / «Прибавь ещё 4» → «Сколько стало?»), the steps done as small green chips above it
+  (the old 3-row checklist got cut off on a phone). `ChecklistItem`, the Primo `FingersKeypad`, `textFit.js` are gone.
+- «Готово» checks every step (no more tapping the instruction row); the answer on the print keypad
+  (`PrintKeypad`, now exported from here and used by «Пальцы → цифра» too), checked on «Готово»; right → «Дальше»
+  → `onCorrect`. The renderer plays its own sounds (`fingers_count` in `OWNS_FEEDBACK_TYPES`).
+- A wrong check KEEPS the hands (they shake; the child corrects them) — it used to reset to fists. With «Строгий
+  подсчёт» a mistake goes through `onStreakReset` (no remount — `onMistake` remounted the task).
+- Hint after the 2nd wrong check of a step: hands steps — the canonical pose beside the instruction for 3 s; the
+  answer step — the raised fingers numbered one by one (`FINGER_TIPS_R` of the vector hands, `CounterHand marks`).
+  Pitfall hit once: the hint's timer list must not hold the shake's reset, or the buttons stay locked.
+- Order (owner): easy → hard inside the lesson, `countStep`: 1 — on one hand, 2 — over five (4 + 3, 8 − 3),
+  3 — the rest; each step shuffled, then two shuffled rounds of all; it used to be the same fixed list every time.
+- Landscape tablet (≥ 700 px, aspect ≥ 5/4): example, instruction and «Готово» left, the hands in the whole height
+  right, the keypad under them — the hands were ≈ 80 px there before.
+
 ## 2026-11-28: «6. Найди знак» (operation_find_sign) — the sign is written into the example
 
 Owner: at the end the «?» must give way to the right sign, written with an animation. Mockup (approved):
@@ -114,8 +135,7 @@ Owner's decisions (step 1 of 2):
   draft before approving, and show the owner the drawings large, not in a dense contact sheet.
 - «Считаем на пальцах» (`fingers_count`) got the same ▼ ▲ under the wrist (`CounterHand`, exported from
   `FingersCountTask.jsx`; the old on-palm `HandArrows` and the `.fng-sub-hand*` / `.fng-arrow` CSS are gone).
-  Known, not fixed (was so before): on a landscape tablet (~1024×700 session area) the expression, the checklist
-  and the keypad leave the hands ≈ 80 px tall.
+  (The landscape-tablet «hands ≈ 80 px» problem was fixed by the 2026-11-28 redo, see above.)
 - All hand drawings (the 14 in the app + every Gemini draft) are copied to
   `docs/mockups/addition-subtraction/hands/` with a README; the app reads `public/hands/`.
 - **Пальцы → цифра**: hands in a random split of n (`fingerSplits`: 5 = 0+5 … 5+0), the child types n on the

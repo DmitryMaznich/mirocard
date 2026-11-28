@@ -157,6 +157,8 @@ export default function SessionScreen() {
     // «Покажи на пальцах»: «Цифра → пальцы» rings on «Готово», but the answer is counted on
     // the next tap («Дальше») — the renderer plays both sounds itself; «Обучение» is silent.
     "fingers_show",
+    // «Считаем на пальцах»: the same «Готово» → «Дальше» flow, its own sounds.
+    "fingers_count",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 

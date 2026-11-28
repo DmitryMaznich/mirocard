@@ -149,7 +149,26 @@ export function generateFingersCount(card) {
   return base;
 }
 
-export function generateFingerTasks(mode, count, params = {}, cards = FINGER_CARDS) {
+// «Считаем на пальцах»: how hard an example is on two hands (owner, 2026-11-28 — the
+// lesson goes from easy to hard, the examples of one step shuffled):
+// 1 — on one hand (sum ≤ 5; subtract from ≤ 5);
+// 2 — over five (4 + 3: the second hand starts; 8 − 3: the answer is still ≥ 5);
+// 3 — the rest (a number over 5; 7 − 3: the answer drops below five).
+export function countStep(card) {
+  const { op = "add", a = 0, b = 0 } = card.params ?? {};
+  if (op === "sub") return a <= 5 ? 1 : a - b >= 5 ? 2 : 3;
+  if (a + b <= 5) return 1;
+  return a <= 5 && b <= 5 ? 2 : 3;
+}
+
+// Step 1, step 2, step 3 (each shuffled), then two more rounds of all of them shuffled;
+// the session goes round after that.
+function countLadder(pool, random) {
+  const steps = [1, 2, 3].flatMap(step => shuffled(pool.filter(c => countStep(c) === step), random));
+  return [...steps, ...shuffled(pool, random), ...shuffled(pool, random)];
+}
+
+export function generateFingerTasks(mode, count, params = {}, cards = FINGER_CARDS, random = Math.random) {
   const fingerCountCards = cards.filter(c => c.params?.mode === "fingers_count");
 
   if (mode === "fingers_show") return generateFingersShowTasks(params, cards);
@@ -161,11 +180,7 @@ export function generateFingerTasks(mode, count, params = {}, cards = FINGER_CAR
       pool = pool.filter(c => (c.params?.op ?? "add") === opFilter);
     }
     if (!pool.length) pool = fingerCountCards;
-    const tasks = [];
-    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
-      tasks.push(generateFingersCount(pool[i % pool.length]));
-    }
-    return tasks;
+    return countLadder(pool, random).slice(0, count).map(generateFingersCount);
   }
 
   return [];
