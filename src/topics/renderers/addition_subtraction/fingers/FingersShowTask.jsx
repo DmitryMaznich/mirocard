@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { handPoseImage } from "./fingerTasks.js";
@@ -60,9 +60,13 @@ function LearnTask({ task, hint, onCorrect, onPrevious }) {
 // sets can't be shown by a real hand, and only 14 could be drawn. Any split of n over
 // the two hands is right (5 + 2, 4 + 3 …); the check is a tap on «Покажи n». A wrong
 // check shakes, folds all and costs the star series; after the second one the
-// canonical pose is shown as a model. Whether the child also shows it on their own
+// canonical pose is shown for 3 seconds as a model. Whether the child also shows it on their own
 // hands is the adult's business.
 const MODEL_AFTER_MISTAKES = 2;
+// The model is a fading prompt: shown for a moment after the 2nd wrong check (and after
+// every one after it), then hidden — the child sets the pose from memory, not by copying
+// a picture that stays on screen (owner, 2026-11-28).
+const MODEL_SHOW_MS = 3000;
 
 // Layout (owner, 2026-11-28): the bold instruction «Покажи на пальцах» on top, the number
 // in the app's print font (Nunito) — the form the child reads in books and on screens —,
@@ -75,27 +79,40 @@ function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect, playFeedb
   const [mistakes, setMistakes] = useState(0);
   const [shake, setShake] = useState(false);
   const [done, setDone] = useState(false);
+  const [modelVisible, setModelVisible] = useState(false);
+  const modelTimer = useRef(null);
   useEffect(() => {
-    setLeft(0); setRight(0); setMistakes(0); setShake(false); setDone(false);
+    setLeft(0); setRight(0); setMistakes(0); setShake(false); setDone(false); setModelVisible(false);
+    clearTimeout(modelTimer.current);
   }, [task.cardId, task.n]);
+  useEffect(() => () => clearTimeout(modelTimer.current), []);
+
+  function flashModel() {
+    clearTimeout(modelTimer.current);
+    setModelVisible(true);
+    modelTimer.current = setTimeout(() => setModelVisible(false), MODEL_SHOW_MS);
+  }
 
   function check() {
     if (shake) return;
     if (done) { onCorrect(task.conceptId, task.cardId); return; }
     if (left + right === task.n) {
       setDone(true);
+      setModelVisible(false);
       playFeedback?.("correct");
       return;
     }
     setShake(true);
-    setMistakes(m => m + 1);
+    const count = mistakes + 1;
+    setMistakes(count);
+    if (count >= MODEL_AFTER_MISTAKES) flashModel();
     playFeedback?.("incorrect");
     onMistake?.(task.conceptId, task.cardId);
     onFlashIncorrect?.();
     setTimeout(() => { setShake(false); setLeft(0); setRight(0); }, 500);
   }
 
-  const showModel = mistakes >= MODEL_AFTER_MISTAKES && !done;
+  const showModel = modelVisible && !done;
   const model = getFingerConfig(task.n);
   const locked = done || shake;
   return (

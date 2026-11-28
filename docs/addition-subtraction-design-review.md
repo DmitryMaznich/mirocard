@@ -76,7 +76,8 @@ Owner's decisions (step 1 of 2):
   Numbers in shuffled rounds of 0–10, never the same twice in a row. Stats per `fshow_<n>`.
 - «Цифра → пальцы» screen (owner, 2026-11-28): bold instruction «Покажи на пальцах» on top; the number in
   Nunito 900 (print), not Primo — here the child reads a number, and print is the form of books and screens;
-  the model appears beside the number; at the bottom the app's primary button «Готово» (teal, 3D shadow)
+  the model appears beside the number for 3 s (`MODEL_SHOW_MS`) after the 2nd wrong check and after every one
+  after it, then hides — a fading prompt, the pose is set from memory (owner); at the bottom the app's primary button «Готово» (teal, 3D shadow)
   instead of the checklist row. A right answer does not move on by itself: the number turns green, the button
   becomes «Дальше» (green), and that tap calls `onCorrect` — the star is counted then. The renderer plays the
   sounds itself (`fingers_show` is in `OWNS_FEEDBACK_TYPES` in `SessionScreen.jsx`): the chime on «Готово»,
