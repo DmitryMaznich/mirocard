@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>«Найди знак» — макет 2026-11-28</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap">
+<style>
+  :root { --plus: #1f7a6f; --minus: #c04040; --ink: #1a2540; --muted: #7a8c88; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Nunito, sans-serif; background: #e6e9e8; color: var(--ink); }
+  .page { display: flex; gap: 24px; padding: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .notes { max-width: 380px; font-size: 15px; line-height: 1.45; }
+  .notes h1 { font-size: 20px; margin: 0 0 8px; }
+  .notes li { margin-bottom: 6px; }
+  .controls { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+  .controls button { font: 800 14px Nunito, sans-serif; padding: 8px 12px; border-radius: 10px; border: 2px solid #c8d4d2; background: #fff; cursor: pointer; }
+
+  /* phone frame */
+  .phone { width: 390px; height: 700px; border-radius: 28px; overflow: hidden; background: #eef0ef; box-shadow: 0 8px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; align-items: center; padding: 22px 14px; }
+  .title { font-weight: 800; font-size: 26px; text-align: center; }
+
+  .expr { margin-top: 26px; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 14px 22px; background: #fff; border-radius: 22px; box-shadow: 0 4px 14px rgba(0,0,0,.06); transition: box-shadow .3s, background .3s; }
+  .expr.ok { background: #f0fdf4; box-shadow: 0 0 0 4px #22c55e55, 0 4px 14px rgba(0,0,0,.06); }
+  .num, .eq { font-weight: 900; font-size: 76px; line-height: 1; color: var(--ink); }
+  .eq { color: var(--muted); }
+  .sign { position: relative; width: 58px; height: 76px; display: flex; align-items: center; justify-content: center; }
+  .sign .q { font-weight: 900; font-size: 76px; color: #a9b4b2; transition: opacity .25s, transform .25s; }
+  .sign.gone .q { opacity: 0; transform: scale(.6); }
+  .sign svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .sign svg line { stroke-width: 11; stroke-linecap: round; fill: none; }
+  .draw { stroke-dasharray: 44; stroke-dashoffset: 44; }
+  .draw.go { animation: draw .38s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .badge { margin-top: 16px; height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 99px; border: 2px solid #8fd3c7; background: #eefaf7; color: #1f5f57; font-weight: 800; font-size: 17px; visibility: hidden; }
+  .badge.on { visibility: visible; }
+
+  .question { margin-top: 18px; font-weight: 800; font-size: 22px; text-align: center; min-height: 30px; }
+  .choices { margin-top: 14px; width: 100%; display: grid; gap: 12px; }
+  .choices.words { grid-template-columns: 1fr; }
+  .choices.signs { grid-template-columns: 1fr 1fr; }
+  .choice { min-height: 74px; border-radius: 18px; border: 2px solid #c8d4d2; background: #fff; box-shadow: 0 4px 0 #dbe4e2; font: 900 26px Nunito, sans-serif; color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; }
+  .choice:active { transform: translateY(4px); box-shadow: none; }
+  .choice .arrow { font-size: 22px; color: #3b82f6; }
+  .choice.big { font-size: 64px; min-height: 110px; }
+  .choice.plus { color: var(--plus); }
+  .choice.minus { color: var(--minus); }
+  .choice.right { border-color: #16a34a; background: #f0fdf4; }
+  .choice.wrong { border-color: #ef4444; background: #fef2f2; animation: shake .4s; }
+  @keyframes shake { 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+  .next { margin-top: auto; font-weight: 800; color: var(--muted); font-size: 15px; height: 20px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="phone" id="phone">
+    <div class="title">Найди знак</div>
+    <div class="expr" id="expr">
+      <span class="num" id="a">7</span>
+      <span class="sign" id="sign"><span class="q">?</span>
+        <svg viewBox="0 0 58 76" aria-hidden="true">
+          <line id="h" class="draw" x1="7" y1="40" x2="51" y2="40"/>
+          <line id="v" class="draw" x1="29" y1="18" x2="29" y2="62"/>
+        </svg>
+      </span>
+      <span class="num" id="b">3</span>
+      <span class="eq">=</span>
+      <span class="num" id="c">4</span>
+    </div>
+    <div class="badge" id="badge"><span id="badgeText">Убрали</span> ✓</div>
+    <div class="question" id="question">Что мы сделали?</div>
+    <div class="choices words" id="choices"></div>
+    <div class="next" id="next"></div>
+  </div>
+
+  <div class="notes">
+    <h1>«Найди знак» — макет</h1>
+    <div class="controls">
+      <button onclick="load('minus')">Пример 7 ? 3 = 4</button>
+      <button onclick="load('plus')">Пример 3 ? 2 = 5</button>
+      <button onclick="load(cur)">Сначала</button>
+    </div>
+    <ol>
+      <li>Сверху жирная инструкция «Найди знак»; пример крупный, с промежутками; минус — настоящий «−», не дефис; результат того же цвета, что и числа.</li>
+      <li>Шаг 1 «Что мы сделали?» — кнопки со стрелками: ▲ Прибавили (стало больше), ▼ Убрали (стало меньше). Стрелки нейтральные синие — не цвет знака, чтобы не подсказывать шаг 2.</li>
+      <li>Шаг 2 «Какой знак поставить?» — крупные + и −.</li>
+      <li>Верный знак: «?» тает, знак пишется в примере по правилам письма (плюс: горизонтальная черта слева направо, потом вертикальная сверху вниз; минус: одна черта слева направо), весь пример подсвечивается зелёным, через ~1,2 с — следующий пример сам.</li>
+      <li>Ошибка — кнопка трясётся красным, можно выбрать ещё раз (как сейчас).</li>
+    </ol>
+    <p>Нажимайте кнопки в «телефоне» слева.</p>
+  </div>
+</div>
+<script>
+const TASKS = {
+  minus: { a: 7, b: 3, c: 4, action: "remove", sign: "-" },
+  plus:  { a: 3, b: 2, c: 5, action: "add", sign: "+" },
+};
+let cur = "minus", t, step;
+const $ = (id) => document.getElementById(id);
+function load(k) {
+  cur = k; t = TASKS[k]; step = 1;
+  $("a").textContent = t.a; $("b").textContent = t.b; $("c").textContent = t.c;
+  $("sign").className = "sign"; $("expr").className = "expr";
+  for (const id of ["h", "v"]) { const l = $(id); l.classList.remove("go"); l.style.stroke = ""; l.style.display = ""; }
+  $("badge").className = "badge"; $("next").textContent = "";
+  $("question").textContent = "Что мы сделали?";
+  render([
+    { v: "add", html: '<span class="arrow">▲</span> Прибавили' },
+    { v: "remove", html: '<span class="arrow">▼</span> Убрали' },
+  ], "words");
+}
+function render(opts, kind) {
+  const box = $("choices"); box.className = "choices " + kind; box.innerHTML = "";
+  for (const o of opts) {
+    const b = document.createElement("button");
+    b.className = "choice" + (kind === "signs" ? " big " + (o.v === "+" ? "plus" : "minus") : "");
+    b.innerHTML = o.html; b.onclick = () => answer(o.v, b); box.appendChild(b);
+  }
+}
+function answer(v, btn) {
+  const right = step === 1 ? v === t.action : v === t.sign;
+  if (!right) { btn.classList.remove("wrong"); void btn.offsetWidth; btn.classList.add("wrong"); return; }
+  btn.classList.add("right");
+  if (step === 1) {
+    setTimeout(() => {
+      step = 2; $("badgeText").textContent = t.action === "add" ? "Прибавили" : "Убрали"; $("badge").className = "badge on";
+      $("question").textContent = "Какой знак поставить?";
+      render([{ v: "+", html: "+" }, { v: "-", html: "−" }], "signs");
+    }, 450);
+    return;
+  }
+  // write the sign into the example
+  const color = t.sign === "+" ? "var(--plus)" : "var(--minus)";
+  $("sign").classList.add("gone");
+  const h = $("h"), vline = $("v");
+  h.style.stroke = color; vline.style.stroke = color;
+  vline.style.display = t.sign === "+" ? "" : "none";
+  setTimeout(() => h.classList.add("go"), 250);
+  if (t.sign === "+") setTimeout(() => vline.classList.add("go"), 250 + 420);
+  const end = 250 + (t.sign === "+" ? 840 : 420);
+  setTimeout(() => { $("expr").classList.add("ok"); }, end);
+  setTimeout(() => { $("next").textContent = "→ следующий пример"; }, end + 900);
+}
+load("minus");
+</script>
+</body>
+</html>
