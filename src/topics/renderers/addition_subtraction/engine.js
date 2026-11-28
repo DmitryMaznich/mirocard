@@ -155,6 +155,8 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
     inputMode: params.inputMode ?? "choices",
     timer: params.timer ?? null,
     showStickPhase: Boolean(params.showStickPhase),
+    // «Сколько стало?»: the counting stick on the screen from the start, all the time.
+    stickAlways: Boolean(params.stickAlways),
   };
 
   let delta = randomInt(1, changeMax);

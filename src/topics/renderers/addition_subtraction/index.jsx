@@ -845,14 +845,18 @@ function TimerBar({ seconds, onExpire }) {
 // large with spaces. A wrong answer is NOT revealed any more (the right option used to
 // light up, and the same example came back — the child just copied it): the wrong
 // option shakes red and goes pale, the counting stick opens right on the screen under
-// the example, and the child answers again from what is left. The options are real
+// the example, and the child answers again from what is left.
+// «Счётная палка на экране» keeps the stick there from the start; the 🧮 button
+// («Кнопка счётного помощника») opens it before any mistake. The options are real
 // mistakes in ascending order (`makeResultOptions`). A right answer is green — the
 // subtraction result used to turn red. The keypad variant checks on «Готово».
 function ResultTask({ task, onCorrect, onIncorrect, onStreakReset }) {
   const [solved, setSolved] = useState(false);
   const [tried, setTried] = useState([]);
   const [shakeValue, setShakeValue] = useState(null);
-  const [helperOpen, setHelperOpen] = useState(false);
+  // «Счётная палка на экране» (stickAlways): the stick is there from the start (owner, 2026-11-28 —
+  // a child who began this mode with support keeps it); otherwise it opens after a mistake.
+  const [helperOpen, setHelperOpen] = useState(Boolean(task.stickAlways));
   const [typedWrong, setTypedWrong] = useState(false);
   const shakeTimer = useRef(null);
   useEffect(() => () => clearTimeout(shakeTimer.current), []);
@@ -891,7 +895,7 @@ function ResultTask({ task, onCorrect, onIncorrect, onStreakReset }) {
           {solved ? task.result : (isPad && digits.length ? digits.join("") : "?")}
         </span>
       </div>
-      {helperOpen && !solved && (
+      {helperOpen && (!solved || task.stickAlways) && (
         <div className="operation-result__helper">
           <HelperPanel inline maxNumber={task.maxNumber} showMoveHint={task.showMoveHint} />
         </div>
