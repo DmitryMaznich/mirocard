@@ -703,7 +703,8 @@ series += [punct_kit, texts_kit]
 # Every model row is in the «Книжные» style (`book`, script.readingSample: printed once, no red dots), the row under it is empty: the child
 # recodes print into handwriting. Methodology and the reasons for every page: docs/propis2-print-to-cursive.md.
 def book(text, as_text=True, gap=None, even=False):
-    r = {"text": text, "kind": "text", "repeat": "one", "dots": "none", "copies": "dash", "asText": as_text, "style": "book"}
+    # the print model in black, the child writes in blue (row.ink, «Цвет пера», owner 2026-11-27): «книжный» text into «ручной»
+    r = {"text": text, "kind": "text", "repeat": "one", "dots": "none", "copies": "dash", "asText": as_text, "style": "book", "ink": "black"}
     if gap:
         r["gap"] = gap
     if even:

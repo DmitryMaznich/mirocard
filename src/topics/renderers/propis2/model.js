@@ -363,6 +363,11 @@ function wrapPassageNow(text, glyphMap, ruling, maxX, indentUnits, snap) {
 export const rowStyleOf = (row, glyphMap) => (row?.style && glyphMap?.styleId && row.style !== glyphMap.styleId && glyphMap.styles?.has(row.style) ? row.style : null);
 export const rowGlyphMap = (glyphMap, row) => { const st = rowStyleOf(row, glyphMap); return st ? glyphMap.styles.get(st) : glyphMap; };
 const styleTag = (row, glyphMap) => { const st = rowStyleOf(row, glyphMap); return st ? `#y${st}` : ""; };
+// A row's PEN COLOUR (`row.ink`, row panel «Цвет пера», owner 2026-11-27): one of INK_COLORS (src/handwriting/propisRuling.js); blue — the
+// default — is no field at all. On the line it is the LAST flag, `#n<id>` (wordEngine INK_FLAG takes it off before the others are read).
+export const ROW_INKS = ["blue", "black", "green", "violet"];
+export const rowInkOf = (row) => (ROW_INKS.includes(row?.ink) && row.ink !== "blue" ? row.ink : null);
+const inkTag = (row) => { const ink = rowInkOf(row); return ink ? `#n${ink}` : ""; };
 // The PARTS of its letter a row writes (the row panel's «Что пишем», owner 2026-11-16): `row.parts = { of, keep }` — the strokes `keep` (indices
 // into the letter's strokes) of the letter `of`, the row's text when they were picked. Typed over with something else, the row writes its text
 // whole again (the pick stays stored, unused). Its line gets `#p<i>.<j>…` (wordEngine layoutWideLinesIntoRows: the other strokes are not written).
@@ -408,13 +413,13 @@ export function pageToLines(page, glyphMap) {
       // a running text in a style that is a sample to read («Книжные», `script.readingSample`) honours «no dots» (other running texts
       // keep their dots, as always)
       const clean = rowParams(row).dots === "none" && rowGlyphMap(glyphMap, row)?.script?.readingSample ? "#c" : "";
-      wrapped.forEach((l, k) => { out.push(`${l}#1${clean}${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}${st}`); if (page?.writeAfter) out.push(""); });
+      wrapped.forEach((l, k) => { out.push(`${l}#1${clean}${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}${st}${inkTag(row)}`); if (page?.writeAfter) out.push(""); });
       return;
     }
     const line = rowToLine(row);
     // a row with no text yet still takes its place on the sheet (a ruled, empty row), so it can be selected and filled
     if (!line) { out.push(tag); return; }
-    out.push(`${line}${indentTag}${cutTag}${tag}${partsTag(row, glyphMap)}${styleTag(row, glyphMap)}`);
+    out.push(`${line}${indentTag}${cutTag}${tag}${partsTag(row, glyphMap)}${styleTag(row, glyphMap)}${inkTag(row)}`);
     if (page?.writeAfter) out.push("");
   });
   return out;
@@ -495,7 +500,7 @@ export function tapSymbol(page, glyphMap, selectedId, tile) {
 
 // ---- the row strip's settings over several rows (owner, 2026-10-24) ----
 // The options a new row takes from the row above it (typed with Enter in fieldText.js, or a tap on an empty place of the sheet).
-export const INHERITED_ROW_KEYS = ["repeat", "dots", "copies", "mark", "asText", "gap", "style"];
+export const INHERITED_ROW_KEYS = ["repeat", "dots", "copies", "mark", "asText", "gap", "style", "ink"];
 export const inheritedRowParams = (row) => Object.fromEntries(INHERITED_ROW_KEYS.filter((k) => row?.[k] !== undefined).map((k) => [k, row[k]]));
 // «Повтор бледной линией» in the strip = repeat "all" + copies "solid"
 export const SOLID_REPEAT = "all-solid";
@@ -504,9 +509,10 @@ export const isSampleRow = (row) => (row?.kind === "text" || row?.kind === "elem
 // A row's setting as the strip shows it: `repeat` (a strip choice, the engine's own rule resolved) or `dots`.
 // `style` (a language with several writing styles): the style the row writes in — its own, else the page's.
 const isStyledRow = (row) => (row?.kind === "text" || row?.kind === "element" || row?.kind === "passage") && Boolean(String(row?.text ?? "").trim());
-const rowsFor = (key) => (key === "style" ? isStyledRow : isSampleRow);
+const rowsFor = (key) => (key === "style" || key === "ink" ? isStyledRow : isSampleRow);
 export function rowSetting(row, key, glyphMap) {
   if (key === "style") return rowStyleOf(row, glyphMap) ?? glyphMap?.styleId ?? null;
+  if (key === "ink") return rowInkOf(row) ?? "blue";
   const p = rowParams(row);
   if (key === "dots") return p.dots;
   const rep = p.repeat === "auto" ? (multipliesByDefault(row?.text, rowGlyphMap(glyphMap, row)) ? "all" : "one") : p.repeat;
@@ -534,6 +540,7 @@ export function mixedRowSettings(rows, glyphMap) {
   const samples = rows.filter(isSampleRow);
   for (const key of ["repeat", "dots"]) if (new Set(samples.map((r) => rowSetting(r, key, glyphMap))).size > 1) out[key] = true;
   if (glyphMap?.styleId && new Set(rows.filter(isStyledRow).map((r) => rowSetting(r, "style", glyphMap))).size > 1) out.style = true;
+  if (new Set(rows.filter(isStyledRow).map((r) => rowSetting(r, "ink", glyphMap))).size > 1) out.ink = true;
   return out;
 }
 

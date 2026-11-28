@@ -35,7 +35,7 @@ TIP_PATHS.medium = TIP_PATHS.large.map((p) => ({ ...p, d: p.d.replace(/-?\d+(\.\
 // moving pen-tip dot. No <svg>/viewBox of its own — the caller positions it (a plain <g>
 // inside its own coordinate space): WordAnimatedCard.jsx wraps it in a per-word <svg>,
 // WriteTextView.jsx wraps it in a <g transform> inside its shared multi-row grid <svg>.
-export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs = 1400, tipSize = "normal", speedFactor = 1, evenSpeed = false }) {
+export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs = 1400, tipSize = "normal", speedFactor = 1, evenSpeed = false, ink = INK_COLOR }) {
   const gRef = useRef(null);
   const dependencyKey = trajectory.strokes.map((s) => s.d).join("|");
   useLoopingStrokes(gRef, dependencyKey, { delayMs, loopPauseMs, speedFactor, evenSpeed });
@@ -43,12 +43,12 @@ export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs
   return (
     <g ref={gRef}>
       {trajectory.strokes.map((s, i) => (
-        <path key={`g${i}`} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={STROKE_W}
+        <path key={`g${i}`} d={s.d} fill="none" stroke={ink} strokeWidth={STROKE_W}
           strokeLinecap="round" strokeLinejoin="round" opacity={0.15} />
       ))}
       {trajectory.strokes.map((s, i) => (
         <path key={`a${i}`} data-pr-anim={i} data-pr-continuous={s.continuous ? "1" : undefined} data-pr-jump={trajectory.lifted ? "1" : undefined}
-          d={s.d} fill="none" stroke={INK_COLOR}
+          d={s.d} fill="none" stroke={ink}
           strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
       ))}
       {/* Small pen: a rounded gold body tapering to a pointed ink-colored tip, held at a
@@ -63,7 +63,7 @@ export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs
       <g data-pr-tip opacity="0">
         <g transform="rotate(55)">
           {TIP_PATHS[tipSize].map((p, i) => (
-            <path key={i} d={p.d} fill={p.fill === "nib" ? NIB_COLOR : p.fill === "ink" ? INK_COLOR : p.fill} />
+            <path key={i} d={p.d} fill={p.fill === "nib" ? NIB_COLOR : p.fill === "ink" ? ink : p.fill} />
           ))}
         </g>
       </g>

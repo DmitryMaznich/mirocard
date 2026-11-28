@@ -8,7 +8,7 @@ import { bookletSheets } from "./booklet.js";
 import { FOUR_LINE_PAPERS, fourLinePaper, fourLinePitchMm, isFourLinePaper } from "./fourLinePapers.js";
 import { PRINT_PAPERS, isPrintPaper, printPaper } from "./printPapers.js";
 import {
-  INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
+  INK_COLOR, inkColorOf, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   ANGLE_FROM_HORIZONTAL_DEG,
   buildDiagonalLines, mmToNativeUnits,
@@ -301,24 +301,26 @@ function hitBox(row, wideRows) {
 
 // The ink of one row. A row that is not being animated is drawn by RowInk, which React skips while the row object is the same: the
 // layout keeps finished rows (wordEngine.js), so typing in one row of the page redraws only that row.
-function RowSegments({ segments, isActive = false, narrowRows = false, speedFactor = 1, evenSpeed = false, tipSize = "large" }) {
+function RowSegments({ segments, isActive = false, narrowRows = false, speedFactor = 1, evenSpeed = false, tipSize = "large", ink = null }) {
+  // the row's pen colour (`row.ink`, wordEngine INK_FLAG): its ink and its copies; start dots and arrows stay red
+  const INK = ink ? inkColorOf(ink) : INK_COLOR;
   return (
     <>
       {segments.map((seg, si) =>
               seg.type === "cursive" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={tipSize} speedFactor={speedFactor} evenSpeed={evenSpeed} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={tipSize} speedFactor={speedFactor} evenSpeed={evenSpeed} ink={INK} />
                   ) : (
                     seg.trajectory.strokes.map((s, ssi) => (
-                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      <path key={ssi} d={s.d} fill="none" stroke={INK} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     ))
                   )}
                 </g>
               ) : seg.type === "glyph" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {seg.strokes.map((s, ssi) => (
-                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" />
+                    <path key={ssi} d={s.d} fill="none" stroke={INK} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" />
                   ))}
                 </g>
               ) : seg.type === "element" ? (
@@ -331,11 +333,11 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
                 // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive && seg.trajectory ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={tipSize} speedFactor={speedFactor} evenSpeed={evenSpeed} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={tipSize} speedFactor={speedFactor} evenSpeed={evenSpeed} ink={INK} />
                   ) : seg.strokes.map((s, ssi) => (
                     // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
                     s.opacity !== undefined && s.opacity <= 0.02 ? null : (
-                      <path key={ssi} d={s.d} fill="none" stroke={s.missing ? MISSING_COLOR : INK_COLOR} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} data-missing={s.missing ? "1" : undefined} />
+                      <path key={ssi} d={s.d} fill="none" stroke={s.missing ? MISSING_COLOR : INK} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} data-missing={s.missing ? "1" : undefined} />
                     )
                   ))}
                   {!isActive && seg.startPoints?.map((pt, pi) => (
@@ -356,7 +358,7 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
                     <g key={ci}>
                       {copy.strokes.map((s, ssi) => (
                         <path
-                          key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
+                          key={ssi} d={s.d} fill="none" stroke={INK} strokeWidth={2}
                           strokeLinecap="round" strokeLinejoin="round" strokeDasharray={REPEAT_DASH} opacity={REPEAT_OPACITY}
                         />
                       ))}
@@ -367,7 +369,7 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
                   ))}
                 </g>
               ) : (
-                <text key={si} x={seg.xOffset} y={NATIVE_L3} fontSize={FALLBACK_FONT_SIZE} fontFamily="system-ui, sans-serif" fill={INK_COLOR}>
+                <text key={si} x={seg.xOffset} y={NATIVE_L3} fontSize={FALLBACK_FONT_SIZE} fontFamily="system-ui, sans-serif" fill={INK}>
                   {seg.text}
                 </text>
               )
@@ -375,8 +377,8 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
     </>
   );
 }
-const RowInk = memo(function RowInk({ segments, narrowRows }) {
-  return <RowSegments segments={segments} narrowRows={narrowRows} />;
+const RowInk = memo(function RowInk({ segments, narrowRows, ink }) {
+  return <RowSegments segments={segments} narrowRows={narrowRows} ink={ink} />;
 });
 
 // One physical page's ruling + content, reused for both the interactive on-screen view (one
@@ -764,8 +766,8 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
         return (
           <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowY(p.rowIndex)})`}>
             {isActive
-              ? <RowSegments segments={p.segments} isActive narrowRows={narrowRows} speedFactor={speedFactor} evenSpeed={Boolean(crop)} tipSize={crop ? "medium" : "large"} />
-              : <RowInk segments={p.segments} narrowRows={narrowRows} />}
+              ? <RowSegments segments={p.segments} isActive narrowRows={narrowRows} speedFactor={speedFactor} evenSpeed={Boolean(crop)} tipSize={crop ? "medium" : "large"} ink={p.ink} />
+              : <RowInk segments={p.segments} narrowRows={narrowRows} ink={p.ink} />}
             {/* the tap area lies OVER the ink (it covers the letters themselves, see hitBox), so the strokes do not swallow the tap */}
             {tappable && (
               <rect
