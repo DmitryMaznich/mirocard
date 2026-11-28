@@ -117,24 +117,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* lets the ▼ / ▲ buttons size themselves from this hand's width */
-  container-type: inline-size;
+  /* hand and buttons stay together, wrists level in both hands */
+  justify-content: flex-end;
+  /* The ▼ / ▲ buttons size themselves from this box: the drawn hand is limited by
+     the height on a tablet and by the width on a phone, so the buttons take the
+     smaller of the two — about a quarter of the hand's width either way. */
+  container-type: size;
 }
 /* ▼ / ▲ under the wrist (owner, 2026-11-28): off the palm, so they never cover the fingers. */
 .fng-hand-buttons {
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  gap: 8cqw;
-  padding: 8px 0 4px;
+  gap: min(8cqw, 5cqh);
+  padding: 6px 0 2px;
 }
 .fng-hand-btn {
-  width: min(30cqw, 88px);
+  width: clamp(44px, min(22cqw, 12cqh), 64px);
   aspect-ratio: 1;
   border: none;
   border-radius: 50%;
   color: #fff;
-  font-size: min(12cqw, 36px);
+  font-size: clamp(16px, min(9cqw, 5cqh), 26px);
   line-height: 1;
   display: flex;
   align-items: center;

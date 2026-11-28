@@ -67,7 +67,7 @@ const MODEL_AFTER_MISTAKES = 2;
 function CounterHand({ count, side, onRaise, onLower, disabled }) {
   return (
     <div className="fng-tap-hand">
-      <AnimatedHand count={count} side={side} style={{ flex: 1, minHeight: 0, width: "100%" }} />
+      <AnimatedHand count={count} side={side} style={{ flex: "0 1 auto", minHeight: 0, width: "100%", aspectRatio: "256 / 320" }} />
       <div className="fng-hand-buttons">
         <button type="button" className="fng-hand-btn fng-hand-btn--down" disabled={disabled || count <= 0} onClick={onLower} aria-label="Опустить палец">▼</button>
         <button type="button" className="fng-hand-btn fng-hand-btn--up" disabled={disabled || count >= 5} onClick={onRaise} aria-label="Поднять палец">▲</button>
