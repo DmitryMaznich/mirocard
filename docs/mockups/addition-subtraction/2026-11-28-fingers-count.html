@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>«Считаем на пальцах» — макет 2026-11-28</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap">
+<style>
+  :root { --plus: #1f7a6f; --minus: #c04040; --ink: #1a2540; --muted: #7a8c88; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Nunito, sans-serif; background: #dfe5ea; color: var(--ink); }
+  .page { display: flex; gap: 24px; padding: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .notes { max-width: 400px; font-size: 15px; line-height: 1.45; }
+  .notes h1 { font-size: 20px; margin: 0 0 8px; }
+  .notes li { margin-bottom: 6px; }
+  .bar { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .bar button { font: 800 14px Nunito, sans-serif; padding: 7px 11px; border-radius: 10px; border: 2px solid #c8d4d2; background: #fff; cursor: pointer; }
+  .bar button.on { border-color: #3b82f6; background: #eff6ff; }
+
+  /* device */
+  .dev { background: #f0f6ff; border-radius: 26px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.18); display: grid; padding: 14px 12px; gap: 8px; }
+  .dev.phone { width: 390px; height: 720px; grid-template-rows: auto auto 1fr auto auto; grid-template-areas: "expr" "step" "hands" "pad" "done"; }
+  .dev.tablet { width: 1024px; height: 700px; grid-template-columns: 0.8fr 1.2fr; grid-template-rows: auto auto 1fr auto; grid-template-areas: "expr hands" "step hands" ". hands" "done pad"; column-gap: 22px; padding: 22px; }
+  .expr { grid-area: expr; justify-self: center; display: flex; gap: 12px; align-items: center; padding: 8px 22px; background: #fff; border: 2px solid #dbe4ea; border-radius: 22px; font-weight: 900; font-size: 64px; line-height: 1.05; transition: background .3s, box-shadow .3s; }
+  .dev.tablet .expr { font-size: 84px; align-self: end; }
+  .expr .op.add { color: var(--plus); } .expr .op.sub { color: var(--minus); }
+  .expr .eq { color: var(--muted); }
+  .expr .res { min-width: .7em; text-align: center; color: #a9b4b2; }
+  .expr .res.typed { color: var(--ink); }
+  .expr.ok { background: #f0fdf4; box-shadow: 0 0 0 4px #22c55e55; }
+  .expr.ok .res { color: #16a34a; }
+  .expr.bad { animation: shake .4s; }
+
+  .step { grid-area: step; justify-self: center; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 74px; }
+  .done-steps { display: flex; gap: 8px; min-height: 24px; }
+  .chip { font-weight: 800; font-size: 14px; color: #15803d; background: #dcfce7; border-radius: 99px; padding: 2px 10px; }
+  .instr { font-weight: 900; font-size: 30px; text-align: center; display: flex; align-items: center; gap: 14px; }
+  .dev.tablet .instr { font-size: 36px; }
+  .model { display: none; gap: 2px; height: 70px; padding: 3px 6px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(26,37,64,.12); }
+  .model.on { display: flex; animation: pop .3s; }
+  .model img { height: 100%; }
+  @keyframes pop { from { opacity: 0; transform: scale(.9); } }
+
+  .hands { grid-area: hands; display: flex; gap: 10px; min-height: 0; }
+  .hands.bad { animation: shake .4s; }
+  .hand { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; container-type: size; }
+  .hbox { position: relative; width: min(100cqw, calc((100cqh - 70px) * .8)); aspect-ratio: 256 / 320; }
+  .hbox img { width: 100%; height: 100%; display: block; }
+  .mirror { transform: scaleX(-1); }
+  .tip { position: absolute; width: 15%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; background: #2563eb; color: #fff; font-weight: 900; font-size: 16px; display: flex; align-items: center; justify-content: center; animation: pop .25s; }
+  .hbtns { display: flex; gap: 14px; padding-top: 8px; }
+  .hb { width: 52px; height: 52px; border-radius: 50%; border: none; color: #fff; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,.25); cursor: pointer; }
+  .hb.up { background: #22c55e; } .hb.dn { background: #ef4444; }
+  .hb:disabled { opacity: .22; box-shadow: none; }
+
+  .pad { grid-area: pad; justify-self: center; width: min(100%, 440px); display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .pad.off { visibility: hidden; }
+  .dev.phone .pad.off { display: none; }
+  .key { min-height: 50px; border: 2px solid #c8d4d2; border-radius: 14px; background: #fff; font: 900 24px Nunito, sans-serif; color: #263131; box-shadow: 0 4px 0 #dbe4e2; cursor: pointer; }
+  .key:nth-child(-n+5) { grid-row: 1; } .key:nth-child(n+6):nth-child(-n+10) { grid-row: 2; }
+  .key.erase { grid-column: 6; grid-row: 1 / span 2; color: #ef4444; }
+
+  .done { grid-area: done; justify-self: center; align-self: end; min-width: 280px; min-height: 56px; border: none; border-radius: 16px; background: #4a9b8f; box-shadow: 0 4px 0 #2a6b60; color: #fff; font: 800 22px Nunito, sans-serif; cursor: pointer; }
+  .done.next { background: #22c55e; box-shadow: 0 4px 0 #15803d; }
+  .done.bad { background: #ef4444; box-shadow: 0 4px 0 #b91c1c; animation: shake .4s; }
+  @keyframes shake { 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div>
+    <div class="bar" id="examples"></div>
+    <div class="bar">
+      <button id="bPhone" class="on" onclick="setDev('phone')">Телефон</button>
+      <button id="bTablet" onclick="setDev('tablet')">Планшет (горизонтально)</button>
+    </div>
+    <div class="dev phone" id="dev">
+      <div class="expr" id="expr"></div>
+      <div class="step">
+        <div class="done-steps" id="chips"></div>
+        <div class="instr"><span id="instr"></span><span class="model" id="model"></span></div>
+      </div>
+      <div class="hands" id="hands"></div>
+      <div class="pad off" id="pad"></div>
+      <button class="done" id="done" onclick="check()">Готово</button>
+    </div>
+  </div>
+  <div class="notes">
+    <h1>«Считаем на пальцах» — макет</h1>
+    <ol>
+      <li><b>Пример</b> сверху крупно, печатным шрифтом, в рамке; «?» на месте ответа.</li>
+      <li><b>Одна инструкция</b> вместо списка: «Покажи 8» → «Убери 3» → «Сколько стало?». Пройденные шаги — маленькие зелёные плашки над ней, ничего не обрезается.</li>
+      <li><b>Кнопка «Готово»</b> на каждом шаге (вместо нажатия на строку). Ответ — клавиатурой с печатными цифрами, тоже по «Готово»; верно → «Дальше».</li>
+      <li><b>Ошибка не сбрасывает руки</b>: трясутся и остаются как были — ребёнок сам поправляет.</li>
+      <li><b>Подсказка после 2-й ошибки</b>: на шагах «Покажи»/«Прибавь»/«Убери» — образец позы рядом с инструкцией на 3 с; на шаге ответа — номера над пальцами по очереди.</li>
+      <li><b>Порядок примеров</b> (кнопки над телефоном): внутри занятия от простого к сложному — до 5 на одной руке → через пятёрку → до 10; внутри ступени вперемешку.</li>
+      <li><b>Планшет горизонтально</b>: пример, инструкция и «Готово» слева, руки во всю высоту справа, клавиатура под руками.</li>
+    </ol>
+    <p>Попробуйте ошибиться дважды, чтобы увидеть подсказку.</p>
+  </div>
+</div>
+<script>
+const EX = [
+  { a: 3, b: 2, op: "add", label: "3 + 2 (до 5)" },
+  { a: 4, b: 3, op: "add", label: "4 + 3 (через пятёрку)" },
+  { a: 8, b: 3, op: "sub", label: "8 − 3" },
+  { a: 10, b: 4, op: "sub", label: "10 − 4" },
+];
+const TIPS = {1:[[94,28]],2:[[87,48],[140,28]],3:[[82,48],[134,28],[179,46]],4:[[87,48],[137,28],[183,46],[215,90]],5:[[28,147],[80,50],[135,29],[181,47],[223,91]]};
+const IMG = n => `../../../public/hands/hand_right_${n}.webp`;
+const canon = n => ({ left: Math.max(0, n - 5), right: Math.min(5, n) }); // right hand fills first
+let t, phase, L, R, input, mistakes, timers = [];
+const $ = id => document.getElementById(id);
+
+function setDev(k) {
+  $("dev").className = "dev " + k;
+  $("bPhone").classList.toggle("on", k === "phone"); $("bTablet").classList.toggle("on", k === "tablet");
+}
+function load(i) {
+  timers.forEach(clearTimeout); timers = [];
+  t = { ...EX[i], res: EX[i].op === "add" ? EX[i].a + EX[i].b : EX[i].a - EX[i].b };
+  phase = "build"; L = 0; R = 0; input = ""; mistakes = 0;
+  [...$("examples").children].forEach((b, k) => b.classList.toggle("on", k === i));
+  $("done").className = "done"; $("done").textContent = "Готово";
+  draw();
+}
+const target = () => phase === "build" ? t.a : t.res;
+function instrText() {
+  if (phase === "build") return `Покажи ${t.a}`;
+  if (phase === "apply") return t.op === "add" ? `Прибавь ещё ${t.b}` : `Убери ${t.b}`;
+  return "Сколько стало?";
+}
+function draw(marks = 0) {
+  const sign = t.op === "add" ? "+" : "−";
+  const ok = phase === "done";
+  $("expr").className = "expr" + (ok ? " ok" : "");
+  $("expr").innerHTML = `<span>${t.a}</span><span class="op ${t.op}">${sign}</span><span>${t.b}</span><span class="eq">=</span><span class="res ${input ? "typed" : ""}">${ok ? t.res : (input || "?")}</span>`;
+  const chips = [];
+  if (phase !== "build") chips.push(`✓ Покажи ${t.a}`);
+  if (phase === "answer" || phase === "done") chips.push(`✓ ${t.op === "add" ? "Прибавь ещё" : "Убери"} ${t.b}`);
+  $("chips").innerHTML = chips.map(c => `<span class="chip">${c}</span>`).join("");
+  $("instr").textContent = ok ? "Молодец!" : instrText();
+  // hands: left hand on the left (drawing as is), right hand mirrored
+  const tips = []; let k = 0;
+  for (const [n, side] of [[L, 0], [R, 1]]) for (const [x, y] of (TIPS[n] || []).map(([x, y]) => [side ? 256 - x : x, y]).sort((p, q) => p[0] - q[0])) tips.push({ side, x, y, k: ++k });
+  const building = phase === "build" || phase === "apply";
+  $("hands").innerHTML = [[L, 0], [R, 1]].map(([n, side]) => `
+    <div class="hand"><div class="hbox"><img class="${side ? "mirror" : ""}" src="${IMG(n)}">
+      ${tips.filter(p => p.side === side && p.k <= marks).map(p => `<span class="tip" style="left:${p.x / 2.56}%;top:${p.y / 3.2}%">${p.k}</span>`).join("")}</div>
+      <div class="hbtns" style="visibility:${building ? "visible" : "hidden"}">
+        <button class="hb dn" ${n <= 0 ? "disabled" : ""} onclick="move(${side},-1)">▼</button>
+        <button class="hb up" ${n >= 5 ? "disabled" : ""} onclick="move(${side},1)">▲</button></div></div>`).join("");
+  $("pad").className = "pad" + (phase === "answer" ? "" : " off");
+  $("pad").innerHTML = [1,2,3,4,5,6,7,8,9,0].map(d => `<button class="key" onclick="key(${d})">${d}</button>`).join("") + `<button class="key erase" onclick="erase()">⌫</button>`;
+}
+function move(side, d) { if (side) R = Math.max(0, Math.min(5, R + d)); else L = Math.max(0, Math.min(5, L + d)); draw(); }
+function key(d) { if (input.length < 2) input = input === "0" ? String(d) : input + d; draw(); }
+function erase() { input = input.slice(0, -1); draw(); }
+function bad(el) { el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad"); setTimeout(() => el.classList.remove("bad"), 450); }
+function check() {
+  if (phase === "done") { load((EX.findIndex(e => e.a === t.a && e.b === t.b) + 1) % EX.length); return; }
+  const right = phase === "answer" ? Number(input) === t.res : L + R === target();
+  if (right) {
+    mistakes = 0; $("model").className = "model";
+    if (phase === "build") phase = "apply"; else if (phase === "apply") phase = "answer";
+    else { phase = "done"; $("done").className = "done next"; $("done").textContent = "Дальше →"; }
+    draw(); return;
+  }
+  mistakes++;
+  bad($("done")); bad(phase === "answer" ? $("expr") : $("hands"));
+  if (phase === "answer") { input = ""; draw(); }
+  if (mistakes >= 2) hint();
+}
+function hint() {
+  timers.forEach(clearTimeout); timers = [];
+  if (phase === "answer") {
+    for (let k = 1; k <= t.res; k++) timers.push(setTimeout(() => draw(k), 500 + (k - 1) * 380));
+    timers.push(setTimeout(() => draw(0), 500 + (t.res - 1) * 380 + 1800));
+    return;
+  }
+  const c = canon(target());
+  $("model").innerHTML = `<img src="${IMG(c.left)}"><img class="mirror" src="${IMG(c.right)}">`;
+  $("model").className = "model on";
+  timers.push(setTimeout(() => { $("model").className = "model"; }, 3000));
+}
+$("examples").innerHTML = EX.map((e, i) => `<button onclick="load(${i})">${e.label}</button>`).join("");
+load(2);
+</script>
+</body>
+</html>
